@@ -5,15 +5,14 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/appliance/business/device"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
-	"github.com/dumacp/sonar/client/messages"
 	evdev "github.com/gvalkov/golang-evdev"
 )
 
 //ListenActor actor to listen events
 type ListenActor struct {
 	context       actor.Context
-	countingActor *actor.PID
 	enters0Before int64
 	exits0Before  int64
 	locks0Before  int64
@@ -32,7 +31,6 @@ type ListenActor struct {
 //NewListen create listen actor
 func NewListen(socket string, baudRate int, countingActor *actor.PID) *ListenActor {
 	act := &ListenActor{}
-	act.countingActor = countingActor
 	act.socket = socket
 	act.baudRate = baudRate
 	act.quit = make(chan int, 0)
@@ -55,29 +53,26 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		act.dev = dev
 		go act.runListen(act.quit)
 	case *actor.Stopping:
-		act.warnLog.Println("stopped actor")
+		logs.LogWarn.Println("stopped actor")
 		select {
 		case act.quit <- 1:
 		case <-time.After(3 * time.Second):
 		}
-	case *messages.CountingActor:
-		act.countingActor = actor.NewPID(msg.Address, msg.ID)
 	case *msgListenError:
-		ctx.Send(act.countingActor, &msgPingError{})
 		time.Sleep(time.Duration(act.timeFailure) * time.Second)
 		act.timeFailure = 2 * act.timeFailure
-		act.errLog.Panicln("listen error")
+		logs.LogError.Panicln("listen error")
 	}
 }
 
 type msgListenError struct{}
 
 func (act *ListenActor) runListen(quit chan int) {
-	events := Listen(quit, act.dev, act.errLog)
+	events := device.Listen(quit, act.dev)
 	for v := range events {
-		act.buildLog.Printf("listen event: %#v\n", v)
+		logs.LogBuild.Printf("listen event: %#v\n", v)
 		switch event := v.(type) {
-		case *Input:
+		case *device.EventUP:
 			if event.id == 0 {
 				enters := event.value
 				if diff := enters - act.enters0Before; diff > 0 {
@@ -91,7 +86,7 @@ func (act *ListenActor) runListen(quit chan int) {
 				}
 				act.enters1Before = enters
 			}
-		case *Output:
+		case *device.EventDown:
 			if event.id == 0 {
 				enters := event.value
 				if diff := enters - act.exits0Before; diff > 0 {

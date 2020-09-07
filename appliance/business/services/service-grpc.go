@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-modem/appliance/services"
-	"github.com/dumacp/go-modem/appliance/services/messages"
+	"github.com/dumacp/go-ignition/appliance/services"
+	"github.com/dumacp/go-ignition/appliance/services/messages"
 )
 
 //Gateway interface

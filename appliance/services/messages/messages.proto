@@ -36,3 +36,24 @@ message AddressCounterResponse {
     string ID = 1;
     string Addr = 2;
 }
+
+//Ignition
+
+message IgnitionUP {
+    int64 TimeStamp = 1;
+}
+message IgnitionDown {
+    int64 TimeStamp = 1;
+}
+message IgnitionStateRequest {
+    string sender = 1;
+}
+message IgnitionStateResponse {
+    enum StateType {
+        UP = 0;
+        DOWN = 1;
+        NA = 2;
+    }
+    StateType State = 1;
+    int64 TimeStamp = 2;
+}

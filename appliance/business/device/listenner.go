@@ -7,7 +7,7 @@ import (
 	evdev "github.com/gvalkov/golang-evdev"
 )
 
-//NewSerial connect with device serial
+//NewEventDevice connect with device serial
 func NewEventDevice(path string) (*evdev.InputDevice, error) {
 	dev, err := evdev.Open(path)
 	if err != nil {
@@ -40,7 +40,7 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 			case evdev.KEY_WAKEUP:
 				if iv.Value == 0 {
 					select {
-					case ch <- &EventDown{}:
+					case ch <- &EventUP{}:
 					case <-time.After(10 * time.Second):
 					}
 				} else {
@@ -48,10 +48,6 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 					case ch <- &EventDown{}:
 					case <-time.After(10 * time.Second):
 					}
-				}
-				select {
-				case ch <- &EventDown{}:
-				case <-time.After(10 * time.Second):
 				}
 			}
 		}

@@ -6,8 +6,8 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/eventstream"
-	localmsg "github.com/dumacp/go-modem/appliance/business/messages"
-	"github.com/dumacp/go-modem/appliance/services/messages"
+	localmsg "github.com/dumacp/go-ignition/appliance/business/messages"
+	"github.com/dumacp/go-ignition/appliance/services/messages"
 )
 
 type service struct {
