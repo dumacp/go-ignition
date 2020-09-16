@@ -13,5 +13,6 @@ type Service interface {
 	Restart()
 	Status() *messages.StatusResponse
 
-	Info(ctx actor.Context, pid *actor.PID) (*messages.InfoCounterResponse, error)
+	Info(ctx actor.Context, pid *actor.PID) (*messages.IgnitionStateResponse, error)
+	EventsSubscription(ctx actor.Context, pid *actor.PID) (*messages.IgnitionEventsSubscriptionAck, error)
 }

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package messages;
-import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
+// import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
 
 
 message Start {}
@@ -57,3 +57,9 @@ message IgnitionStateResponse {
     StateType State = 1;
     int64 TimeStamp = 2;
 }
+
+message IgnitionEventsSubscription {
+    string sender = 1;
+}
+message IgnitionEventsSubscriptionAck {}
+

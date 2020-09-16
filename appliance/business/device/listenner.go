@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
 	evdev "github.com/gvalkov/golang-evdev"
 )
 
@@ -36,6 +37,7 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 			if err != nil {
 				continue
 			}
+			logs.LogBuild.Printf("event: %v", iv)
 			switch iv.Code {
 			case evdev.KEY_WAKEUP:
 				if iv.Value == 0 {
