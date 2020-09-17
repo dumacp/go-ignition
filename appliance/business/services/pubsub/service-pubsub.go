@@ -4,20 +4,11 @@ import (
 	"fmt"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	svc "github.com/dumacp/go-ignition/appliance/business/services"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/comm/pubsub"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
 	"github.com/dumacp/go-ignition/appliance/services"
-	"github.com/dumacp/go-ignition/appliance/services/messages"
-)
-
-const (
-	topicAppliance        = "appliance/ignition"
-	topicStart            = topicAppliance + "/START"
-	topicRestart          = topicAppliance + "/RESTART"
-	topicStop             = topicAppliance + "/STOP"
-	topicStatus           = topicAppliance + "/STATUS"
-	topicRequestInfoState = topicAppliance + "/RequestInfoState"
 )
 
 //Gateway interface
@@ -37,16 +28,16 @@ func NewService() Gateway {
 }
 
 func service(ctx actor.Context) {
-	pubsub.Subscribe(topicStart, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicStart, func(msg []byte) {
 		ctx.Send(ctx.Self(), &messages.Start{})
 	})
-	pubsub.Subscribe(topicStop, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicStop, func(msg []byte) {
 		ctx.Send(ctx.Self(), &messages.Stop{})
 	})
-	pubsub.Subscribe(topicRestart, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicRestart, func(msg []byte) {
 		ctx.Send(ctx.Self(), &messages.Restart{})
 	})
-	pubsub.Subscribe(topicStatus, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicStatus, func(msg []byte) {
 		req := &messages.StatusRequest{}
 		if err := req.Unmarshal(msg); err != nil {
 			logs.LogWarn.Println(err)
@@ -54,7 +45,7 @@ func service(ctx actor.Context) {
 		}
 		ctx.Send(ctx.Self(), req)
 	})
-	pubsub.Subscribe(topicRequestInfoState, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicRequestInfoState, func(msg []byte) {
 		req := &messages.InfoCounterRequest{}
 		if err := req.Unmarshal(msg); err != nil {
 			logs.LogWarn.Println(err)
@@ -82,7 +73,7 @@ func (act *pubsubActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Println(err)
 			break
 		}
-		pubsub.Publish(fmt.Sprintf("%s/%s", topicStatus, msg.GetSender()), payload)
+		pubsub.Publish(fmt.Sprintf("%s/%s", pubsub.TopicStatus, msg.GetSender()), payload)
 	case *messages.IgnitionStateRequest:
 		resp, err := act.svc.Info(ctx, ctx.Parent())
 		if err != nil {
@@ -94,6 +85,6 @@ func (act *pubsubActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Println(err)
 			break
 		}
-		pubsub.Publish(fmt.Sprintf("%s/%s", topicRequestInfoState, msg.GetSender()), payload)
+		pubsub.Publish(fmt.Sprintf("%s/%s", pubsub.TopicRequestInfoState, msg.GetSender()), payload)
 	}
 }

@@ -7,9 +7,8 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/eventstream"
-	localmsg "github.com/dumacp/go-ignition/appliance/business/messages"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	"github.com/dumacp/go-ignition/appliance/services"
-	"github.com/dumacp/go-ignition/appliance/services/messages"
 )
 
 type service struct {
@@ -31,19 +30,19 @@ func GetInstance() services.Service {
 
 func (svc *service) Start() {
 	svc.state = messages.STARTED
-	eventstream.Publish(&localmsg.Start{})
+	eventstream.Publish(&messages.Start{})
 }
 
 func (svc *service) Stop() {
 	svc.state = messages.STOPPED
-	eventstream.Publish(&localmsg.Stop{})
+	eventstream.Publish(&messages.Stop{})
 }
 
 func (svc *service) Restart() {
 	svc.state = messages.STOPPED
-	eventstream.Publish(&localmsg.Stop{})
+	eventstream.Publish(&messages.Stop{})
 	time.Sleep(1 * time.Second)
-	eventstream.Publish(&localmsg.Start{})
+	eventstream.Publish(&messages.Start{})
 	svc.state = messages.STARTED
 }
 

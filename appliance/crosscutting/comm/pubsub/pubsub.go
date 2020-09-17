@@ -6,18 +6,20 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
-	"github.com/dumacp/go-ignition/appliance/services/messages"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	//ClientID pubsub id
-	ClientID = "ignition"
-	//TopicAppliance prefix topic
-	TopicAppliance = "appliance/ignition"
-	//TopicEvents events topic
-	TopicEvents = TopicAppliance + "/events"
+	ClientID              = "ignition"
+	TopicAppliance        = "appliance/ignition"
+	TopicEvents           = TopicAppliance + "/events"
+	TopicStart            = TopicAppliance + "/START"
+	TopicRestart          = TopicAppliance + "/RESTART"
+	TopicStop             = TopicAppliance + "/STOP"
+	TopicStatus           = TopicAppliance + "/STATUS"
+	TopicRequestInfoState = TopicAppliance + "/RequestInfoState"
 )
 
 // //Gateway interface

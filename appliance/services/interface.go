@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-ignition/appliance/services/messages"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 )
 
 //Service interface

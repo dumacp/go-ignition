@@ -25,6 +25,31 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+//Ignition
+type StateType int32
+
+const (
+	UP   StateType = 0
+	DOWN StateType = 1
+	NA   StateType = 2
+)
+
+var StateType_name = map[int32]string{
+	0: "UP",
+	1: "DOWN",
+	2: "NA",
+}
+
+var StateType_value = map[string]int32{
+	"UP":   0,
+	"DOWN": 1,
+	"NA":   2,
+}
+
+func (StateType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{0}
+}
+
 type StatusResponse_StateType int32
 
 const (
@@ -47,30 +72,6 @@ var StatusResponse_StateType_value = map[string]int32{
 
 func (StatusResponse_StateType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{4, 0}
-}
-
-type IgnitionStateResponse_StateType int32
-
-const (
-	UP   IgnitionStateResponse_StateType = 0
-	DOWN IgnitionStateResponse_StateType = 1
-	NA   IgnitionStateResponse_StateType = 2
-)
-
-var IgnitionStateResponse_StateType_name = map[int32]string{
-	0: "UP",
-	1: "DOWN",
-	2: "NA",
-}
-
-var IgnitionStateResponse_StateType_value = map[string]int32{
-	"UP":   0,
-	"DOWN": 1,
-	"NA":   2,
-}
-
-func (IgnitionStateResponse_StateType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{12, 0}
 }
 
 type Start struct {
@@ -452,21 +453,22 @@ func (m *AddressCounterResponse) GetAddr() string {
 	return ""
 }
 
-type IgnitionUP struct {
-	TimeStamp int64 `protobuf:"varint,1,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+type IgnitionEvent struct {
+	Event     StateType `protobuf:"varint,1,opt,name=Event,proto3,enum=messages.StateType" json:"Event,omitempty"`
+	TimeStamp int64     `protobuf:"varint,2,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
 }
 
-func (m *IgnitionUP) Reset()      { *m = IgnitionUP{} }
-func (*IgnitionUP) ProtoMessage() {}
-func (*IgnitionUP) Descriptor() ([]byte, []int) {
+func (m *IgnitionEvent) Reset()      { *m = IgnitionEvent{} }
+func (*IgnitionEvent) ProtoMessage() {}
+func (*IgnitionEvent) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
 }
-func (m *IgnitionUP) XXX_Unmarshal(b []byte) error {
+func (m *IgnitionEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *IgnitionUP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *IgnitionEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_IgnitionUP.Marshal(b, m, deterministic)
+		return xxx_messageInfo_IgnitionEvent.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -476,62 +478,26 @@ func (m *IgnitionUP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *IgnitionUP) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IgnitionUP.Merge(m, src)
+func (m *IgnitionEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IgnitionEvent.Merge(m, src)
 }
-func (m *IgnitionUP) XXX_Size() int {
+func (m *IgnitionEvent) XXX_Size() int {
 	return m.Size()
 }
-func (m *IgnitionUP) XXX_DiscardUnknown() {
-	xxx_messageInfo_IgnitionUP.DiscardUnknown(m)
+func (m *IgnitionEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_IgnitionEvent.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_IgnitionUP proto.InternalMessageInfo
+var xxx_messageInfo_IgnitionEvent proto.InternalMessageInfo
 
-func (m *IgnitionUP) GetTimeStamp() int64 {
+func (m *IgnitionEvent) GetEvent() StateType {
 	if m != nil {
-		return m.TimeStamp
+		return m.Event
 	}
-	return 0
+	return UP
 }
 
-type IgnitionDown struct {
-	TimeStamp int64 `protobuf:"varint,1,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
-}
-
-func (m *IgnitionDown) Reset()      { *m = IgnitionDown{} }
-func (*IgnitionDown) ProtoMessage() {}
-func (*IgnitionDown) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
-}
-func (m *IgnitionDown) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *IgnitionDown) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_IgnitionDown.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *IgnitionDown) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IgnitionDown.Merge(m, src)
-}
-func (m *IgnitionDown) XXX_Size() int {
-	return m.Size()
-}
-func (m *IgnitionDown) XXX_DiscardUnknown() {
-	xxx_messageInfo_IgnitionDown.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IgnitionDown proto.InternalMessageInfo
-
-func (m *IgnitionDown) GetTimeStamp() int64 {
+func (m *IgnitionEvent) GetTimeStamp() int64 {
 	if m != nil {
 		return m.TimeStamp
 	}
@@ -545,7 +511,7 @@ type IgnitionStateRequest struct {
 func (m *IgnitionStateRequest) Reset()      { *m = IgnitionStateRequest{} }
 func (*IgnitionStateRequest) ProtoMessage() {}
 func (*IgnitionStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
 }
 func (m *IgnitionStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -582,14 +548,14 @@ func (m *IgnitionStateRequest) GetSender() string {
 }
 
 type IgnitionStateResponse struct {
-	State     IgnitionStateResponse_StateType `protobuf:"varint,1,opt,name=State,proto3,enum=messages.IgnitionStateResponse_StateType" json:"State,omitempty"`
-	TimeStamp int64                           `protobuf:"varint,2,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+	State     StateType `protobuf:"varint,1,opt,name=State,proto3,enum=messages.StateType" json:"State,omitempty"`
+	TimeStamp int64     `protobuf:"varint,2,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
 }
 
 func (m *IgnitionStateResponse) Reset()      { *m = IgnitionStateResponse{} }
 func (*IgnitionStateResponse) ProtoMessage() {}
 func (*IgnitionStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
 }
 func (m *IgnitionStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -618,7 +584,7 @@ func (m *IgnitionStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_IgnitionStateResponse proto.InternalMessageInfo
 
-func (m *IgnitionStateResponse) GetState() IgnitionStateResponse_StateType {
+func (m *IgnitionStateResponse) GetState() StateType {
 	if m != nil {
 		return m.State
 	}
@@ -639,7 +605,7 @@ type IgnitionEventsSubscription struct {
 func (m *IgnitionEventsSubscription) Reset()      { *m = IgnitionEventsSubscription{} }
 func (*IgnitionEventsSubscription) ProtoMessage() {}
 func (*IgnitionEventsSubscription) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
 }
 func (m *IgnitionEventsSubscription) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -681,7 +647,7 @@ type IgnitionEventsSubscriptionAck struct {
 func (m *IgnitionEventsSubscriptionAck) Reset()      { *m = IgnitionEventsSubscriptionAck{} }
 func (*IgnitionEventsSubscriptionAck) ProtoMessage() {}
 func (*IgnitionEventsSubscriptionAck) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{14}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
 }
 func (m *IgnitionEventsSubscriptionAck) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -711,8 +677,8 @@ func (m *IgnitionEventsSubscriptionAck) XXX_DiscardUnknown() {
 var xxx_messageInfo_IgnitionEventsSubscriptionAck proto.InternalMessageInfo
 
 func init() {
+	proto.RegisterEnum("messages.StateType", StateType_name, StateType_value)
 	proto.RegisterEnum("messages.StatusResponse_StateType", StatusResponse_StateType_name, StatusResponse_StateType_value)
-	proto.RegisterEnum("messages.IgnitionStateResponse_StateType", IgnitionStateResponse_StateType_name, IgnitionStateResponse_StateType_value)
 	proto.RegisterType((*Start)(nil), "messages.Start")
 	proto.RegisterType((*Stop)(nil), "messages.Stop")
 	proto.RegisterType((*Restart)(nil), "messages.Restart")
@@ -722,8 +688,7 @@ func init() {
 	proto.RegisterType((*InfoCounterResponse)(nil), "messages.InfoCounterResponse")
 	proto.RegisterType((*AddressCounterRequest)(nil), "messages.AddressCounterRequest")
 	proto.RegisterType((*AddressCounterResponse)(nil), "messages.AddressCounterResponse")
-	proto.RegisterType((*IgnitionUP)(nil), "messages.IgnitionUP")
-	proto.RegisterType((*IgnitionDown)(nil), "messages.IgnitionDown")
+	proto.RegisterType((*IgnitionEvent)(nil), "messages.IgnitionEvent")
 	proto.RegisterType((*IgnitionStateRequest)(nil), "messages.IgnitionStateRequest")
 	proto.RegisterType((*IgnitionStateResponse)(nil), "messages.IgnitionStateResponse")
 	proto.RegisterType((*IgnitionEventsSubscription)(nil), "messages.IgnitionEventsSubscription")
@@ -733,48 +698,47 @@ func init() {
 func init() { proto.RegisterFile("messages.proto", fileDescriptor_4dc296cbfe5ffcd5) }
 
 var fileDescriptor_4dc296cbfe5ffcd5 = []byte{
-	// 466 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x4f, 0x8b, 0xd3, 0x40,
-	0x18, 0xc6, 0x67, 0x62, 0x4d, 0x37, 0xaf, 0x5a, 0xc2, 0xe8, 0x96, 0x45, 0x74, 0x94, 0x01, 0xf1,
-	0x0f, 0x4b, 0x85, 0x75, 0x0f, 0x1e, 0x04, 0xa9, 0xa6, 0x48, 0x10, 0xda, 0x92, 0xa4, 0x78, 0xce,
-	0x6e, 0xc7, 0x25, 0x48, 0x67, 0x62, 0x66, 0xa2, 0x78, 0x11, 0x3f, 0x82, 0x5f, 0xc0, 0xbb, 0x1f,
-	0xc5, 0x63, 0x8f, 0x7b, 0xb4, 0xe9, 0xc5, 0xe3, 0x7e, 0x04, 0xc9, 0x34, 0xd9, 0xdd, 0x54, 0x97,
-	0xee, 0x2d, 0xcf, 0x33, 0xbf, 0x37, 0xef, 0xf3, 0xe6, 0x9d, 0x40, 0x67, 0xc6, 0x95, 0x8a, 0x8f,
-	0xb8, 0xea, 0xa5, 0x99, 0xd4, 0x92, 0x6c, 0xd5, 0x9a, 0xb5, 0xe1, 0x6a, 0xa8, 0xe3, 0x4c, 0x33,
-	0x1b, 0x5a, 0xa1, 0x96, 0x29, 0x73, 0xa0, 0x1d, 0x70, 0x65, 0xac, 0x87, 0x70, 0x23, 0xd4, 0xb1,
-	0xce, 0x55, 0xc0, 0x3f, 0xe6, 0x5c, 0x69, 0xd2, 0x05, 0x3b, 0xe4, 0x62, 0xca, 0xb3, 0x1d, 0x7c,
-	0x1f, 0x3f, 0x72, 0x82, 0x4a, 0xb1, 0xaf, 0xd0, 0xa9, 0x41, 0x95, 0x4a, 0xa1, 0x38, 0x79, 0x6e,
-	0x5e, 0xab, 0xb9, 0x01, 0x3b, 0x7b, 0xac, 0x77, 0x1a, 0xa0, 0x09, 0x1a, 0xc9, 0xa3, 0x2f, 0x29,
-	0x0f, 0x56, 0x05, 0x6c, 0x0f, 0x9c, 0x53, 0x8f, 0x5c, 0x83, 0x76, 0x18, 0xf5, 0x83, 0x68, 0xe0,
-	0xb9, 0x68, 0x25, 0x46, 0xe3, 0xf1, 0xc0, 0x73, 0x71, 0x29, 0x26, 0xc3, 0xb7, 0xc3, 0xd1, 0xbb,
-	0xa1, 0x6b, 0xb1, 0x5d, 0x20, 0xbe, 0x78, 0x2f, 0x5f, 0xcb, 0x5c, 0x68, 0x9e, 0x6d, 0x4a, 0xfb,
-	0x06, 0x6e, 0x36, 0xe8, 0x2a, 0x72, 0x17, 0x6c, 0x5f, 0xa4, 0xb9, 0x56, 0x06, 0xbf, 0x12, 0x54,
-	0x8a, 0xec, 0x40, 0x7b, 0x94, 0x6b, 0x73, 0x60, 0x99, 0x83, 0x5a, 0xb2, 0xa7, 0xb0, 0xdd, 0x9f,
-	0x4e, 0x33, 0xae, 0xd4, 0x25, 0x3b, 0xbf, 0x80, 0xee, 0x7a, 0x41, 0xd5, 0xbc, 0x03, 0x96, 0xef,
-	0x55, 0xb4, 0xe5, 0x7b, 0x84, 0x40, 0xab, 0x24, 0x4d, 0x47, 0x27, 0x30, 0xcf, 0xec, 0x09, 0x80,
-	0x7f, 0x24, 0x12, 0x9d, 0x48, 0x31, 0x19, 0x93, 0x3b, 0xe0, 0x44, 0xc9, 0x8c, 0x87, 0x3a, 0x9e,
-	0xa5, 0x55, 0xe2, 0x33, 0x83, 0xed, 0xc2, 0xf5, 0x9a, 0xf5, 0xe4, 0x67, 0xb1, 0x81, 0xee, 0xc1,
-	0xad, 0x9a, 0x36, 0xdf, 0xfe, 0xdc, 0x1c, 0xaa, 0x31, 0xc7, 0x4a, 0xb1, 0x1f, 0x18, 0xb6, 0xd7,
-	0x0a, 0xaa, 0x39, 0x5e, 0x36, 0xf7, 0xfe, 0xf8, 0x6c, 0xef, 0xff, 0xe5, 0xff, 0x59, 0x7f, 0x33,
-	0xa8, 0xb5, 0x1e, 0xf4, 0xc1, 0xf9, 0xcb, 0x61, 0x83, 0x35, 0x19, 0xbb, 0x88, 0x6c, 0x41, 0xcb,
-	0x2b, 0xef, 0x01, 0x2e, 0x9d, 0x61, 0xdf, 0xb5, 0xd8, 0x3e, 0xdc, 0xae, 0xdb, 0x0d, 0x3e, 0x71,
-	0xa1, 0x55, 0x98, 0x1f, 0xa8, 0xc3, 0x2c, 0x49, 0x4b, 0xe7, 0xc2, 0xa9, 0xee, 0xc1, 0xdd, 0x8b,
-	0xab, 0xfa, 0x87, 0x1f, 0x5e, 0xed, 0xcf, 0x17, 0x14, 0x1d, 0x2f, 0x28, 0x3a, 0x59, 0x50, 0xfc,
-	0xad, 0xa0, 0xf8, 0x67, 0x41, 0xf1, 0xaf, 0x82, 0xe2, 0x79, 0x41, 0xf1, 0xef, 0x82, 0xe2, 0x3f,
-	0x05, 0x45, 0x27, 0x05, 0xc5, 0xdf, 0x97, 0x14, 0xcd, 0x97, 0x14, 0x1d, 0x2f, 0x29, 0x3a, 0xb0,
-	0xcd, 0x2f, 0xf7, 0xec, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x72, 0xb0, 0x72, 0x59, 0x84, 0x03,
-	0x00, 0x00,
+	// 458 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0x41, 0x6b, 0xd4, 0x40,
+	0x14, 0x9e, 0x89, 0xdb, 0x6c, 0xf3, 0xa4, 0x4b, 0x98, 0xda, 0xa5, 0x88, 0x8e, 0x32, 0x20, 0x5a,
+	0x91, 0x15, 0x6a, 0x0f, 0x1e, 0xbc, 0xac, 0x66, 0x91, 0x20, 0x64, 0x97, 0x24, 0x45, 0x8f, 0xa6,
+	0xdd, 0xb1, 0x04, 0xd9, 0x49, 0xcc, 0x4c, 0x04, 0x2f, 0xe2, 0x4f, 0xf0, 0x67, 0xf8, 0x53, 0x3c,
+	0xee, 0xb1, 0x47, 0x37, 0x7b, 0xf1, 0xd8, 0x9f, 0x20, 0x99, 0x4c, 0x6a, 0x53, 0x2c, 0xf5, 0xf6,
+	0xbe, 0x6f, 0xbe, 0x37, 0xef, 0xfb, 0x5e, 0x26, 0x30, 0x58, 0x70, 0x29, 0x93, 0x13, 0x2e, 0x47,
+	0x79, 0x91, 0xa9, 0x8c, 0x6c, 0xb6, 0x98, 0xf5, 0x61, 0x23, 0x52, 0x49, 0xa1, 0x98, 0x0d, 0xbd,
+	0x48, 0x65, 0x39, 0x73, 0xa0, 0x1f, 0x72, 0xa9, 0xa9, 0x87, 0xb0, 0x15, 0xa9, 0x44, 0x95, 0x32,
+	0xe4, 0x9f, 0x4a, 0x2e, 0x15, 0x19, 0x82, 0x1d, 0x71, 0x31, 0xe7, 0xc5, 0x2e, 0xbe, 0x8f, 0x1f,
+	0x39, 0xa1, 0x41, 0xec, 0x2b, 0x0c, 0x5a, 0xa1, 0xcc, 0x33, 0x21, 0x39, 0x79, 0xae, 0xaf, 0x55,
+	0x5c, 0x0b, 0x07, 0xfb, 0x6c, 0x74, 0x6e, 0xa0, 0x2b, 0xd4, 0x90, 0xc7, 0x5f, 0x72, 0x1e, 0x36,
+	0x0d, 0x6c, 0x1f, 0x9c, 0x73, 0x8e, 0xdc, 0x84, 0x7e, 0x14, 0x8f, 0xc3, 0x78, 0xe2, 0xb9, 0xa8,
+	0x01, 0xd3, 0xd9, 0x6c, 0xe2, 0xb9, 0xb8, 0x06, 0x87, 0xc1, 0x9b, 0x60, 0xfa, 0x36, 0x70, 0x2d,
+	0xf6, 0x04, 0x88, 0x2f, 0x3e, 0x64, 0xaf, 0xb2, 0x52, 0x28, 0x5e, 0x5c, 0xe7, 0xf6, 0x35, 0x6c,
+	0x77, 0xd4, 0xc6, 0xf2, 0x10, 0x6c, 0x5f, 0xe4, 0xa5, 0x92, 0x5a, 0x7e, 0x23, 0x34, 0x88, 0xec,
+	0x42, 0x7f, 0x5a, 0x2a, 0x7d, 0x60, 0xe9, 0x83, 0x16, 0xb2, 0xa7, 0xb0, 0x33, 0x9e, 0xcf, 0x0b,
+	0x2e, 0xe5, 0x7f, 0x4e, 0x7e, 0x01, 0xc3, 0xcb, 0x0d, 0x66, 0xf8, 0x00, 0x2c, 0xdf, 0x33, 0x6a,
+	0xcb, 0xf7, 0x08, 0x81, 0x5e, 0xad, 0xd4, 0x13, 0x9d, 0x50, 0xd7, 0xec, 0x1d, 0x6c, 0xf9, 0x27,
+	0x22, 0x55, 0x69, 0x26, 0x26, 0x9f, 0xb9, 0x50, 0x64, 0x0f, 0x36, 0x74, 0x61, 0x96, 0xbc, 0xdd,
+	0x5d, 0xb2, 0xd9, 0x6a, 0x23, 0xbd, 0x03, 0x4e, 0x9c, 0x2e, 0x78, 0xa4, 0x92, 0x45, 0x6e, 0x62,
+	0xfc, 0x25, 0xd8, 0x08, 0x6e, 0xb5, 0x37, 0xeb, 0xce, 0x0b, 0x39, 0x64, 0x27, 0x47, 0x83, 0xd8,
+	0x7b, 0xd8, 0xb9, 0xa4, 0x37, 0x31, 0xf6, 0xba, 0x9f, 0xfd, 0xdf, 0x8e, 0x74, 0x79, 0x8d, 0xa3,
+	0x03, 0xb8, 0xdd, 0xc9, 0x2a, 0xa3, 0xf2, 0x48, 0x1e, 0x17, 0x69, 0x5e, 0x33, 0x57, 0xfa, 0xba,
+	0x07, 0x77, 0xaf, 0xee, 0x1a, 0x1f, 0x7f, 0x7c, 0xfc, 0xe0, 0xe2, 0xe3, 0xb2, 0xc1, 0x3a, 0x9c,
+	0xb9, 0x88, 0x6c, 0x42, 0xcf, 0xab, 0xdf, 0x11, 0xae, 0x99, 0x60, 0xec, 0x5a, 0x2f, 0x0f, 0x96,
+	0x2b, 0x8a, 0x4e, 0x57, 0x14, 0x9d, 0xad, 0x28, 0xfe, 0x56, 0x51, 0xfc, 0xa3, 0xa2, 0xf8, 0x67,
+	0x45, 0xf1, 0xb2, 0xa2, 0xf8, 0x57, 0x45, 0xf1, 0xef, 0x8a, 0xa2, 0xb3, 0x8a, 0xe2, 0xef, 0x6b,
+	0x8a, 0x96, 0x6b, 0x8a, 0x4e, 0xd7, 0x14, 0x1d, 0xd9, 0xfa, 0xdf, 0x7a, 0xf6, 0x27, 0x00, 0x00,
+	0xff, 0xff, 0xd4, 0xb8, 0xed, 0x0a, 0x6d, 0x03, 0x00, 0x00,
 }
 
-func (x StatusResponse_StateType) String() string {
-	s, ok := StatusResponse_StateType_name[int32(x)]
+func (x StateType) String() string {
+	s, ok := StateType_name[int32(x)]
 	if ok {
 		return s
 	}
 	return strconv.Itoa(int(x))
 }
-func (x IgnitionStateResponse_StateType) String() string {
-	s, ok := IgnitionStateResponse_StateType_name[int32(x)]
+func (x StatusResponse_StateType) String() string {
+	s, ok := StatusResponse_StateType_name[int32(x)]
 	if ok {
 		return s
 	}
@@ -993,14 +957,14 @@ func (this *AddressCounterResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *IgnitionUP) Equal(that interface{}) bool {
+func (this *IgnitionEvent) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*IgnitionUP)
+	that1, ok := that.(*IgnitionEvent)
 	if !ok {
-		that2, ok := that.(IgnitionUP)
+		that2, ok := that.(IgnitionEvent)
 		if ok {
 			that1 = &that2
 		} else {
@@ -1012,28 +976,7 @@ func (this *IgnitionUP) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.TimeStamp != that1.TimeStamp {
-		return false
-	}
-	return true
-}
-func (this *IgnitionDown) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*IgnitionDown)
-	if !ok {
-		that2, ok := that.(IgnitionDown)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
+	if this.Event != that1.Event {
 		return false
 	}
 	if this.TimeStamp != that1.TimeStamp {
@@ -1226,22 +1169,13 @@ func (this *AddressCounterResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *IgnitionUP) GoString() string {
+func (this *IgnitionEvent) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 5)
-	s = append(s, "&messages.IgnitionUP{")
-	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *IgnitionDown) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 5)
-	s = append(s, "&messages.IgnitionDown{")
+	s := make([]string, 0, 6)
+	s = append(s, "&messages.IgnitionEvent{")
+	s = append(s, "Event: "+fmt.Sprintf("%#v", this.Event)+",\n")
 	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
 	s = append(s, "}")
 	return strings.Join(s, "")
@@ -1551,7 +1485,7 @@ func (m *AddressCounterResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *IgnitionUP) Marshal() (dAtA []byte, err error) {
+func (m *IgnitionEvent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1561,12 +1495,12 @@ func (m *IgnitionUP) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *IgnitionUP) MarshalTo(dAtA []byte) (int, error) {
+func (m *IgnitionEvent) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *IgnitionUP) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *IgnitionEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1574,33 +1508,10 @@ func (m *IgnitionUP) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.TimeStamp != 0 {
 		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
 		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0x10
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *IgnitionDown) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *IgnitionDown) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *IgnitionDown) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.TimeStamp != 0 {
-		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
+	if m.Event != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.Event))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -1844,24 +1755,15 @@ func (m *AddressCounterResponse) Size() (n int) {
 	return n
 }
 
-func (m *IgnitionUP) Size() (n int) {
+func (m *IgnitionEvent) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.TimeStamp != 0 {
-		n += 1 + sovMessages(uint64(m.TimeStamp))
+	if m.Event != 0 {
+		n += 1 + sovMessages(uint64(m.Event))
 	}
-	return n
-}
-
-func (m *IgnitionDown) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.TimeStamp != 0 {
 		n += 1 + sovMessages(uint64(m.TimeStamp))
 	}
@@ -2013,21 +1915,12 @@ func (this *AddressCounterResponse) String() string {
 	}, "")
 	return s
 }
-func (this *IgnitionUP) String() string {
+func (this *IgnitionEvent) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&IgnitionUP{`,
-		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
-		`}`,
-	}, "")
-	return s
-}
-func (this *IgnitionDown) String() string {
-	if this == nil {
-		return "nil"
-	}
-	s := strings.Join([]string{`&IgnitionDown{`,
+	s := strings.Join([]string{`&IgnitionEvent{`,
+		`Event:` + fmt.Sprintf("%v", this.Event) + `,`,
 		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
 		`}`,
 	}, "")
@@ -2775,7 +2668,7 @@ func (m *AddressCounterResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *IgnitionUP) Unmarshal(dAtA []byte) error {
+func (m *IgnitionEvent) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2798,17 +2691,17 @@ func (m *IgnitionUP) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: IgnitionUP: wiretype end group for non-group")
+			return fmt.Errorf("proto: IgnitionEvent: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: IgnitionUP: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: IgnitionEvent: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Event", wireType)
 			}
-			m.TimeStamp = 0
+			m.Event = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -2818,65 +2711,12 @@ func (m *IgnitionUP) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.TimeStamp |= int64(b&0x7F) << shift
+				m.Event |= StateType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *IgnitionDown) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: IgnitionDown: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: IgnitionDown: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
 			}
@@ -3047,7 +2887,7 @@ func (m *IgnitionStateResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= IgnitionStateResponse_StateType(b&0x7F) << shift
+				m.State |= StateType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

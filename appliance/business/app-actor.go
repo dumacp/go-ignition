@@ -4,13 +4,11 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-ignition/appliance/business/device"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	"github.com/dumacp/go-ignition/appliance/business/services/grpc"
-	"github.com/dumacp/go-ignition/appliance/business/services/pubsub"
-	gwpubsub "github.com/dumacp/go-ignition/appliance/crosscutting/comm/pubsub"
+	svcpubsub "github.com/dumacp/go-ignition/appliance/business/services/pubsub"
+	"github.com/dumacp/go-ignition/appliance/crosscutting/comm/pubsub"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
-	evemsg "github.com/dumacp/go-ignition/appliance/events/messages"
-	svcmsg "github.com/dumacp/go-ignition/appliance/services/messages"
 )
 
 type App struct {
@@ -36,7 +34,7 @@ func services(ctx actor.Context) error {
 		return err
 	}
 	propsPubSub := actor.PropsFromProducer(func() actor.Actor {
-		return pubsub.NewService()
+		return svcpubsub.NewService()
 	})
 	_, err = ctx.SpawnNamed(propsPubSub, "svc-mqtt")
 	if err != nil {
@@ -68,17 +66,16 @@ func (app *App) Receive(ctx actor.Context) {
 
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
-	case *device.EventUP:
-		event := &evemsg.IgnitionUP{}
-		payload, err := event.Marshal()
+	case *messages.IgnitionEvent:
+		payload, err := msg.Marshal()
 		if err != nil {
-			logs.LogError.Println(err)
+			logs.LogWarn.Printf("error publishing event: %s", err)
 		}
-		gwpubsub.Publish(gwpubsub.TopicEvents, payload)
+		pubsub.Publish(pubsub.TopicEvents, payload)
 		for _, subs := range app.eventSubscriptors {
-			ctx.Send(subs, event)
+			ctx.Send(subs, msg)
 		}
-	case *svcmsg.IgnitionEventsSubscription:
+	case *messages.IgnitionEventsSubscription:
 		if ctx.Sender() != nil {
 			app.eventSubscriptors[ctx.Sender().String()] = ctx.Sender()
 		}

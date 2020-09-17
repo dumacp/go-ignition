@@ -5,7 +5,9 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/appliance/business/device"
+	"github.com/dumacp/go-ignition/appliance/crosscutting/comm/pubsub"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
+	"github.com/dumacp/go-ignition/appliance/events/messages"
 	evdev "github.com/gvalkov/golang-evdev"
 )
 
@@ -55,6 +57,18 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		time.Sleep(time.Duration(act.timeFailure) * time.Second)
 		act.timeFailure = 2 * act.timeFailure
 		logs.LogError.Panicln("listen error")
+	case *device.EventUP:
+		event := messages.IgnitionEvent{Event: messages.UP, TimeStamp: time.Now().Unix()}
+		payload, err := event.Marshal()
+		if err != nil {
+			logs.LogWarn.Printf("error publishing event: %s", err)
+		}
+		pubsub.Publish(pubsub.TopicEvents, payload)
+		ctx.Send(ctx.Parent(), event)
+	case *device.EventDown:
+		event := messages.IgnitionEvent{Event: messages.DOWN, TimeStamp: time.Now().Unix()}
+
+		ctx.Send(ctx.Parent(), event)
 	}
 }
 
@@ -64,9 +78,11 @@ func (act *ListenActor) runListen(quit chan int) {
 	events := device.Listen(quit, act.dev)
 	for v := range events {
 		logs.LogBuild.Printf("listen event: %#v\n", v)
-		switch v.(type) {
+		switch event := v.(type) {
 		case *device.EventUP:
+			act.context.Send(act.context.Self(), event)
 		case *device.EventDown:
+			act.context.Send(act.context.Self(), event)
 		}
 	}
 	act.context.Send(act.context.Self(), &msgListenError{})

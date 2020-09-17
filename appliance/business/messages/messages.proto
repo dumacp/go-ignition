@@ -38,22 +38,23 @@ message AddressCounterResponse {
 }
 
 //Ignition
+enum StateType {
+    UP = 0;
+    DOWN = 1;
+    NA = 2;
+}
 
-message IgnitionUP {
-    int64 TimeStamp = 1;
+message IgnitionEvent {
+    
+    StateType Event = 1;
+    int64 TimeStamp = 2;
 }
-message IgnitionDown {
-    int64 TimeStamp = 1;
-}
+
 message IgnitionStateRequest {
     string sender = 1;
 }
 message IgnitionStateResponse {
-    enum StateType {
-        UP = 0;
-        DOWN = 1;
-        NA = 2;
-    }
+    
     StateType State = 1;
     int64 TimeStamp = 2;
 }
