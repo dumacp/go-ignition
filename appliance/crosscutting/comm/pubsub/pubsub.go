@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ClientID              = "ignition"
+	clientID              = "ignition"
 	TopicAppliance        = "appliance/ignition"
 	TopicEvents           = TopicAppliance + "/events"
 	TopicStart            = TopicAppliance + "/START"
@@ -29,11 +29,12 @@ const (
 // }
 
 type pubsubActor struct {
-	ctx           actor.Context
-	behavior      actor.Behavior
+	ctx actor.Context
+	// behavior      actor.Behavior
 	state         messages.StatusResponse_StateType
 	client        mqtt.Client
-	subscriptions map[string]func(msg []byte)
+	mux           sync.Mutex
+	subscriptions map[string]*subscribeMSG
 }
 
 var instance *pubsubActor
@@ -44,7 +45,8 @@ func getInstance() *pubsubActor {
 
 	once.Do(func() {
 		instance = &pubsubActor{}
-		instance.subscriptions = make(map[string]func(msg []byte))
+		instance.mux = sync.Mutex{}
+		instance.subscriptions = make(map[string]*subscribeMSG)
 		ctx := actor.EmptyRootContext
 		props := actor.PropsFromFunc(instance.Receive)
 		_, err := ctx.SpawnNamed(props, "pubsub-actor")
@@ -57,6 +59,7 @@ func getInstance() *pubsubActor {
 
 //Init init pubsub instance
 func Init() error {
+	defer time.Sleep(3 * time.Second)
 	if getInstance() == nil {
 		return fmt.Errorf("error instance")
 	}
@@ -68,27 +71,40 @@ type publishMSG struct {
 	msg   []byte
 }
 
+type subscribeMSG struct {
+	pid   *actor.PID
+	parse func([]byte) interface{}
+}
+
 //Publish function to publish messages in pubsub gateway
 func Publish(topic string, msg []byte) {
-	instance := getInstance()
-	instance.ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
+	getInstance().ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
 }
 
 //Subscribe subscribe to topics
-func Subscribe(topic string, callback func(msg []byte)) {
+func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) error {
 	instance := getInstance()
-	instance.subscriptions[topic] = callback
+	subs := &subscribeMSG{pid: pid, parse: parse}
+	instance.mux.Lock()
+	instance.subscriptions[topic] = subs
+	instance.mux.Unlock()
 	if !instance.client.IsConnected() {
-		instance.ctx.PoisonFuture(instance.ctx.Self()).Wait()
-		return
+		// instance.ctx.PoisonFuture(instance.ctx.Self()).Wait()
+		return fmt.Errorf("pubsub is not connected")
 	}
-	subscribe(topic, callback)
+	logs.LogBuild.Printf("subscription in topic -> %q -> %#v", topic, subs)
+	instance.subscribe(topic, subs)
+	return nil
 }
 
-func subscribe(topic string, callback func(msg []byte)) error {
+func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	handler := func(client mqtt.Client, m mqtt.Message) {
+		logs.LogBuild.Printf("local topic -> %q", m.Topic())
+		// logs.LogBuild.Printf("local payload - > %s", m.Payload())
 		m.Ack()
-		callback(m.Payload())
+		msg := subs.parse(m.Payload())
+		// logs.LogBuild.Printf("parse payload-> %s", msg)
+		ps.ctx.Send(subs.pid, msg)
 	}
 	if tk := instance.client.Subscribe(topic, 1, handler); !tk.WaitTimeout(3 * time.Second) {
 		if err := tk.Error(); err != nil {
@@ -100,6 +116,7 @@ func subscribe(topic string, callback func(msg []byte)) error {
 
 //Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
+	ps.ctx = ctx
 	switch ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
@@ -109,7 +126,7 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 			logs.LogError.Panic(err)
 		}
 		for k, v := range ps.subscriptions {
-			subscribe(k, v)
+			ps.subscribe(k, v)
 		}
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
@@ -118,24 +135,23 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 		logs.LogError.Println("Stopped, actor and its children are stopped")
 	case *actor.Restarting:
 		logs.LogError.Println("Restarting, actor is about to restart")
-	default:
-		ps.behavior.Receive(ctx)
+
 	}
 }
 
-func (ps *pubsubActor) Started(ctx actor.Context) {
-	ps.ctx = ctx
-	switch ctx.Message().(type) {
-	}
-}
+// func (ps *pubsubActor) Started(ctx actor.Context) {
+// 	ps.ctx = ctx
+// 	switch ctx.Message().(type) {
+// 	}
+// }
 
-func (ps *pubsubActor) Stopped(ctx actor.Context) {
-}
+// func (ps *pubsubActor) Stopped(ctx actor.Context) {
+// }
 
 func client() mqtt.Client {
-	opt := mqtt.NewClientOptions()
-	// opt.SetAutoReconnect(true)
-	opt.SetClientID(fmt.Sprintf("%s-%d", ClientID, time.Now().Unix()))
+	opt := mqtt.NewClientOptions().AddBroker("tcp://127.0.0.1:1883")
+	opt.SetAutoReconnect(true)
+	opt.SetClientID(fmt.Sprintf("%s", clientID))
 	opt.SetKeepAlive(30 * time.Second)
 	opt.SetConnectRetryInterval(10 * time.Second)
 	client := mqtt.NewClient(opt)
@@ -144,7 +160,7 @@ func client() mqtt.Client {
 
 func connect(c mqtt.Client) error {
 	tk := c.Connect()
-	if tk.WaitTimeout(10 * time.Second) {
+	if !tk.WaitTimeout(10 * time.Second) {
 		return fmt.Errorf("connect wait error")
 	}
 	if err := tk.Error(); err != nil {
