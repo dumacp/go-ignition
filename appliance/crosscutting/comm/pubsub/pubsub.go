@@ -151,7 +151,7 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 func client() mqtt.Client {
 	opt := mqtt.NewClientOptions().AddBroker("tcp://127.0.0.1:1883")
 	opt.SetAutoReconnect(true)
-	opt.SetClientID(fmt.Sprintf("%s", clientID))
+	opt.SetClientID(fmt.Sprintf("%s-%d", clientID, time.Now().Unix()))
 	opt.SetKeepAlive(30 * time.Second)
 	opt.SetConnectRetryInterval(10 * time.Second)
 	client := mqtt.NewClient(opt)

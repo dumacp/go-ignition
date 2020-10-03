@@ -28,32 +28,23 @@ func NewService() Gateway {
 }
 
 func service(ctx actor.Context) {
-	pubsub.Subscribe(pubsub.TopicStart, func(msg []byte) {
-		ctx.Send(ctx.Self(), &messages.Start{})
+	pubsub.Subscribe(pubsub.TopicStart, ctx.Self(), func(msg []byte) interface{} {
+		return &messages.Start{}
 	})
-	pubsub.Subscribe(pubsub.TopicStop, func(msg []byte) {
-		ctx.Send(ctx.Self(), &messages.Stop{})
+	pubsub.Subscribe(pubsub.TopicStop, ctx.Self(), func(msg []byte) interface{} {
+		return &messages.Stop{}
 	})
-	pubsub.Subscribe(pubsub.TopicRestart, func(msg []byte) {
-		ctx.Send(ctx.Self(), &messages.Restart{})
+	pubsub.Subscribe(pubsub.TopicStop, ctx.Self(), func(msg []byte) interface{} {
+		return &messages.Restart{}
 	})
-	pubsub.Subscribe(pubsub.TopicStatus, func(msg []byte) {
+	pubsub.Subscribe(pubsub.TopicStatus, ctx.Self(), func(msg []byte) interface{} {
 		req := &messages.StatusRequest{}
 		if err := req.Unmarshal(msg); err != nil {
 			logs.LogWarn.Println(err)
-			return
+			return nil
 		}
-		ctx.Send(ctx.Self(), req)
+		return req
 	})
-	pubsub.Subscribe(pubsub.TopicRequestInfoState, func(msg []byte) {
-		req := &messages.InfoCounterRequest{}
-		if err := req.Unmarshal(msg); err != nil {
-			logs.LogWarn.Println(err)
-			return
-		}
-		ctx.Send(ctx.Self(), req)
-	})
-
 }
 
 //Receive function

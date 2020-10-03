@@ -1,11 +1,10 @@
-package business
+package app
 
 import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/appliance/business/device"
-	"github.com/dumacp/go-ignition/appliance/crosscutting/comm/pubsub"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
 	"github.com/dumacp/go-ignition/appliance/events/messages"
 	evdev "github.com/gvalkov/golang-evdev"
@@ -59,15 +58,14 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		logs.LogError.Panicln("listen error")
 	case *device.EventUP:
 		event := messages.IgnitionEvent{Event: messages.UP, TimeStamp: time.Now().Unix()}
-		payload, err := event.Marshal()
-		if err != nil {
-			logs.LogWarn.Printf("error publishing event: %s", err)
-		}
-		pubsub.Publish(pubsub.TopicEvents, payload)
+		//payload, err := event.Marshal()
+		//if err != nil {
+		//	logs.LogWarn.Printf("error publishing event: %s", err)
+		//}
+		//pubsub.Publish(pubsub.TopicEvents, payload)
 		ctx.Send(ctx.Parent(), event)
 	case *device.EventDown:
 		event := messages.IgnitionEvent{Event: messages.DOWN, TimeStamp: time.Now().Unix()}
-
 		ctx.Send(ctx.Parent(), event)
 	}
 }

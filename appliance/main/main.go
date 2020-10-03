@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/remote"
-	"github.com/dumacp/go-ignition/appliance/business"
+	"github.com/dumacp/go-ignition/appliance/business/app"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
 )
 
@@ -20,6 +21,14 @@ const (
 	pathEvents = "/dev/input/event0"
 )
 
+var debug bool
+var logStd bool
+
+func init() {
+	flag.BoolVar(&debug, "debug", false, "debug mode")
+	flag.BoolVar(&logStd, "logstd", false, "log in stderr")
+}
+
 func main() {
 
 	defer func() {
@@ -27,6 +36,10 @@ func main() {
 			logs.LogWarn.Printf("recover: %v", r)
 		}
 	}()
+
+	flag.Parse()
+
+	initLogs(debug, logStd)
 
 	portlocal := port
 	for {
@@ -46,7 +59,7 @@ func main() {
 
 	rootContext := actor.EmptyRootContext
 
-	propsApp := actor.PropsFromProducer(func() actor.Actor { return business.NewApp(pathEvents) })
+	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(pathEvents) })
 	rootContext.SpawnNamed(propsApp, "ignition")
 
 	finish := make(chan os.Signal, 1)

@@ -1,4 +1,4 @@
-package business
+package app
 
 import (
 	"time"
@@ -51,16 +51,16 @@ func (app *App) Receive(ctx actor.Context) {
 		propsListen := actor.PropsFromProducer(func() actor.Actor {
 			return NewListen(app.path)
 		})
-		_, err := ctx.SpawnNamed(propsListen, "listen-actor")
+		_, err := ctx.SpawnNamed(propsListen, "listen-ignition")
 		if err != nil {
 			time.Sleep(3 * time.Second)
 			logs.LogError.Panic(err)
 		}
 
-		if err := services(ctx); err != nil {
-			time.Sleep(3 * time.Second)
-			logs.LogError.Panic(err)
-		}
+		//if err := services(ctx); err != nil {
+		//	time.Sleep(3 * time.Second)
+		//	logs.LogError.Panic(err)
+		//}
 
 		logs.LogInfo.Println("started actor")
 
