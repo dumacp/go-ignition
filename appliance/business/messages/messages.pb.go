@@ -29,21 +29,21 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type StateType int32
 
 const (
-	UP   StateType = 0
-	DOWN StateType = 1
-	NA   StateType = 2
+	NA   StateType = 0
+	UP   StateType = 1
+	DOWN StateType = 2
 )
 
 var StateType_name = map[int32]string{
-	0: "UP",
-	1: "DOWN",
-	2: "NA",
+	0: "NA",
+	1: "UP",
+	2: "DOWN",
 }
 
 var StateType_value = map[string]int32{
-	"UP":   0,
-	"DOWN": 1,
-	"NA":   2,
+	"NA":   0,
+	"UP":   1,
+	"DOWN": 2,
 }
 
 func (StateType) EnumDescriptor() ([]byte, []int) {
@@ -453,15 +453,67 @@ func (m *AddressCounterResponse) GetAddr() string {
 	return ""
 }
 
+type ValueEvent struct {
+	State StateType `protobuf:"varint,1,opt,name=state,proto3,enum=messages.StateType" json:"state,omitempty"`
+	Coord string    `protobuf:"bytes,2,opt,name=coord,proto3" json:"coord,omitempty"`
+}
+
+func (m *ValueEvent) Reset()      { *m = ValueEvent{} }
+func (*ValueEvent) ProtoMessage() {}
+func (*ValueEvent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
+}
+func (m *ValueEvent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ValueEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ValueEvent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ValueEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ValueEvent.Merge(m, src)
+}
+func (m *ValueEvent) XXX_Size() int {
+	return m.Size()
+}
+func (m *ValueEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_ValueEvent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ValueEvent proto.InternalMessageInfo
+
+func (m *ValueEvent) GetState() StateType {
+	if m != nil {
+		return m.State
+	}
+	return NA
+}
+
+func (m *ValueEvent) GetCoord() string {
+	if m != nil {
+		return m.Coord
+	}
+	return ""
+}
+
 type IgnitionEvent struct {
-	Event     StateType `protobuf:"varint,1,opt,name=Event,proto3,enum=messages.StateType" json:"Event,omitempty"`
-	TimeStamp int64     `protobuf:"varint,2,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+	Value     *ValueEvent `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	TimeStamp int64       `protobuf:"varint,2,opt,name=timeStamp,proto3" json:"timeStamp,omitempty"`
+	Type      string      `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
 }
 
 func (m *IgnitionEvent) Reset()      { *m = IgnitionEvent{} }
 func (*IgnitionEvent) ProtoMessage() {}
 func (*IgnitionEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
 }
 func (m *IgnitionEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -490,11 +542,11 @@ func (m *IgnitionEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_IgnitionEvent proto.InternalMessageInfo
 
-func (m *IgnitionEvent) GetEvent() StateType {
+func (m *IgnitionEvent) GetValue() *ValueEvent {
 	if m != nil {
-		return m.Event
+		return m.Value
 	}
-	return UP
+	return nil
 }
 
 func (m *IgnitionEvent) GetTimeStamp() int64 {
@@ -504,6 +556,13 @@ func (m *IgnitionEvent) GetTimeStamp() int64 {
 	return 0
 }
 
+func (m *IgnitionEvent) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
 type IgnitionStateRequest struct {
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 }
@@ -511,7 +570,7 @@ type IgnitionStateRequest struct {
 func (m *IgnitionStateRequest) Reset()      { *m = IgnitionStateRequest{} }
 func (*IgnitionStateRequest) ProtoMessage() {}
 func (*IgnitionStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
 }
 func (m *IgnitionStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -555,7 +614,7 @@ type IgnitionStateResponse struct {
 func (m *IgnitionStateResponse) Reset()      { *m = IgnitionStateResponse{} }
 func (*IgnitionStateResponse) ProtoMessage() {}
 func (*IgnitionStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
 }
 func (m *IgnitionStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -588,7 +647,7 @@ func (m *IgnitionStateResponse) GetState() StateType {
 	if m != nil {
 		return m.State
 	}
-	return UP
+	return NA
 }
 
 func (m *IgnitionStateResponse) GetTimeStamp() int64 {
@@ -605,7 +664,7 @@ type IgnitionEventsSubscription struct {
 func (m *IgnitionEventsSubscription) Reset()      { *m = IgnitionEventsSubscription{} }
 func (*IgnitionEventsSubscription) ProtoMessage() {}
 func (*IgnitionEventsSubscription) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
 }
 func (m *IgnitionEventsSubscription) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -647,7 +706,7 @@ type IgnitionEventsSubscriptionAck struct {
 func (m *IgnitionEventsSubscriptionAck) Reset()      { *m = IgnitionEventsSubscriptionAck{} }
 func (*IgnitionEventsSubscriptionAck) ProtoMessage() {}
 func (*IgnitionEventsSubscriptionAck) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{14}
 }
 func (m *IgnitionEventsSubscriptionAck) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -688,6 +747,7 @@ func init() {
 	proto.RegisterType((*InfoCounterResponse)(nil), "messages.InfoCounterResponse")
 	proto.RegisterType((*AddressCounterRequest)(nil), "messages.AddressCounterRequest")
 	proto.RegisterType((*AddressCounterResponse)(nil), "messages.AddressCounterResponse")
+	proto.RegisterType((*ValueEvent)(nil), "messages.ValueEvent")
 	proto.RegisterType((*IgnitionEvent)(nil), "messages.IgnitionEvent")
 	proto.RegisterType((*IgnitionStateRequest)(nil), "messages.IgnitionStateRequest")
 	proto.RegisterType((*IgnitionStateResponse)(nil), "messages.IgnitionStateResponse")
@@ -698,36 +758,39 @@ func init() {
 func init() { proto.RegisterFile("messages.proto", fileDescriptor_4dc296cbfe5ffcd5) }
 
 var fileDescriptor_4dc296cbfe5ffcd5 = []byte{
-	// 458 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0x41, 0x6b, 0xd4, 0x40,
-	0x14, 0x9e, 0x89, 0xdb, 0x6c, 0xf3, 0xa4, 0x4b, 0x98, 0xda, 0xa5, 0x88, 0x8e, 0x32, 0x20, 0x5a,
-	0x91, 0x15, 0x6a, 0x0f, 0x1e, 0xbc, 0xac, 0x66, 0x91, 0x20, 0x64, 0x97, 0x24, 0x45, 0x8f, 0xa6,
-	0xdd, 0xb1, 0x04, 0xd9, 0x49, 0xcc, 0x4c, 0x04, 0x2f, 0xe2, 0x4f, 0xf0, 0x67, 0xf8, 0x53, 0x3c,
-	0xee, 0xb1, 0x47, 0x37, 0x7b, 0xf1, 0xd8, 0x9f, 0x20, 0x99, 0x4c, 0x6a, 0x53, 0x2c, 0xf5, 0xf6,
-	0xbe, 0x6f, 0xbe, 0x37, 0xef, 0xfb, 0x5e, 0x26, 0x30, 0x58, 0x70, 0x29, 0x93, 0x13, 0x2e, 0x47,
-	0x79, 0x91, 0xa9, 0x8c, 0x6c, 0xb6, 0x98, 0xf5, 0x61, 0x23, 0x52, 0x49, 0xa1, 0x98, 0x0d, 0xbd,
-	0x48, 0x65, 0x39, 0x73, 0xa0, 0x1f, 0x72, 0xa9, 0xa9, 0x87, 0xb0, 0x15, 0xa9, 0x44, 0x95, 0x32,
-	0xe4, 0x9f, 0x4a, 0x2e, 0x15, 0x19, 0x82, 0x1d, 0x71, 0x31, 0xe7, 0xc5, 0x2e, 0xbe, 0x8f, 0x1f,
-	0x39, 0xa1, 0x41, 0xec, 0x2b, 0x0c, 0x5a, 0xa1, 0xcc, 0x33, 0x21, 0x39, 0x79, 0xae, 0xaf, 0x55,
-	0x5c, 0x0b, 0x07, 0xfb, 0x6c, 0x74, 0x6e, 0xa0, 0x2b, 0xd4, 0x90, 0xc7, 0x5f, 0x72, 0x1e, 0x36,
-	0x0d, 0x6c, 0x1f, 0x9c, 0x73, 0x8e, 0xdc, 0x84, 0x7e, 0x14, 0x8f, 0xc3, 0x78, 0xe2, 0xb9, 0xa8,
-	0x01, 0xd3, 0xd9, 0x6c, 0xe2, 0xb9, 0xb8, 0x06, 0x87, 0xc1, 0x9b, 0x60, 0xfa, 0x36, 0x70, 0x2d,
-	0xf6, 0x04, 0x88, 0x2f, 0x3e, 0x64, 0xaf, 0xb2, 0x52, 0x28, 0x5e, 0x5c, 0xe7, 0xf6, 0x35, 0x6c,
-	0x77, 0xd4, 0xc6, 0xf2, 0x10, 0x6c, 0x5f, 0xe4, 0xa5, 0x92, 0x5a, 0x7e, 0x23, 0x34, 0x88, 0xec,
-	0x42, 0x7f, 0x5a, 0x2a, 0x7d, 0x60, 0xe9, 0x83, 0x16, 0xb2, 0xa7, 0xb0, 0x33, 0x9e, 0xcf, 0x0b,
-	0x2e, 0xe5, 0x7f, 0x4e, 0x7e, 0x01, 0xc3, 0xcb, 0x0d, 0x66, 0xf8, 0x00, 0x2c, 0xdf, 0x33, 0x6a,
-	0xcb, 0xf7, 0x08, 0x81, 0x5e, 0xad, 0xd4, 0x13, 0x9d, 0x50, 0xd7, 0xec, 0x1d, 0x6c, 0xf9, 0x27,
-	0x22, 0x55, 0x69, 0x26, 0x26, 0x9f, 0xb9, 0x50, 0x64, 0x0f, 0x36, 0x74, 0x61, 0x96, 0xbc, 0xdd,
-	0x5d, 0xb2, 0xd9, 0x6a, 0x23, 0xbd, 0x03, 0x4e, 0x9c, 0x2e, 0x78, 0xa4, 0x92, 0x45, 0x6e, 0x62,
-	0xfc, 0x25, 0xd8, 0x08, 0x6e, 0xb5, 0x37, 0xeb, 0xce, 0x0b, 0x39, 0x64, 0x27, 0x47, 0x83, 0xd8,
-	0x7b, 0xd8, 0xb9, 0xa4, 0x37, 0x31, 0xf6, 0xba, 0x9f, 0xfd, 0xdf, 0x8e, 0x74, 0x79, 0x8d, 0xa3,
-	0x03, 0xb8, 0xdd, 0xc9, 0x2a, 0xa3, 0xf2, 0x48, 0x1e, 0x17, 0x69, 0x5e, 0x33, 0x57, 0xfa, 0xba,
-	0x07, 0x77, 0xaf, 0xee, 0x1a, 0x1f, 0x7f, 0x7c, 0xfc, 0xe0, 0xe2, 0xe3, 0xb2, 0xc1, 0x3a, 0x9c,
-	0xb9, 0x88, 0x6c, 0x42, 0xcf, 0xab, 0xdf, 0x11, 0xae, 0x99, 0x60, 0xec, 0x5a, 0x2f, 0x0f, 0x96,
-	0x2b, 0x8a, 0x4e, 0x57, 0x14, 0x9d, 0xad, 0x28, 0xfe, 0x56, 0x51, 0xfc, 0xa3, 0xa2, 0xf8, 0x67,
-	0x45, 0xf1, 0xb2, 0xa2, 0xf8, 0x57, 0x45, 0xf1, 0xef, 0x8a, 0xa2, 0xb3, 0x8a, 0xe2, 0xef, 0x6b,
-	0x8a, 0x96, 0x6b, 0x8a, 0x4e, 0xd7, 0x14, 0x1d, 0xd9, 0xfa, 0xdf, 0x7a, 0xf6, 0x27, 0x00, 0x00,
-	0xff, 0xff, 0xd4, 0xb8, 0xed, 0x0a, 0x6d, 0x03, 0x00, 0x00,
+	// 509 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0x4d, 0x6f, 0xd3, 0x40,
+	0x10, 0xf5, 0xba, 0x8d, 0x53, 0x4f, 0xd5, 0xc8, 0xda, 0xa6, 0x51, 0x84, 0x60, 0x41, 0x2b, 0x21,
+	0x68, 0x85, 0x82, 0x14, 0x7a, 0xe0, 0xc0, 0x25, 0xe0, 0x08, 0x59, 0x88, 0x24, 0xb2, 0x53, 0xb8,
+	0xe2, 0x26, 0x4b, 0x15, 0x41, 0xbc, 0xc6, 0xbb, 0xae, 0xd4, 0x0b, 0xe2, 0x27, 0xf0, 0x33, 0xf8,
+	0x29, 0x1c, 0x73, 0xec, 0x91, 0x38, 0x17, 0x8e, 0xfd, 0x09, 0xc8, 0xeb, 0xcd, 0x87, 0x23, 0x2a,
+	0x38, 0x65, 0xde, 0xec, 0x9b, 0x37, 0x2f, 0x4f, 0x63, 0xa8, 0x4d, 0x99, 0x10, 0xe1, 0x05, 0x13,
+	0xad, 0x38, 0xe1, 0x92, 0xe3, 0xbd, 0x25, 0xa6, 0x55, 0xa8, 0x04, 0x32, 0x4c, 0x24, 0xb5, 0x60,
+	0x37, 0x90, 0x3c, 0xa6, 0x36, 0x54, 0x7d, 0x26, 0x54, 0xeb, 0x11, 0x1c, 0x04, 0x32, 0x94, 0xa9,
+	0xf0, 0xd9, 0x97, 0x94, 0x09, 0x89, 0x1b, 0x60, 0x05, 0x2c, 0x1a, 0xb3, 0xa4, 0x89, 0x1e, 0xa0,
+	0xc7, 0xb6, 0xaf, 0x11, 0xfd, 0x0a, 0xb5, 0x25, 0x51, 0xc4, 0x3c, 0x12, 0x0c, 0x3f, 0x57, 0xb2,
+	0x92, 0x29, 0x62, 0xad, 0x4d, 0x5b, 0x2b, 0x03, 0x65, 0xa2, 0x82, 0x6c, 0x78, 0x15, 0x33, 0xbf,
+	0x18, 0xa0, 0x6d, 0xb0, 0x57, 0x3d, 0xbc, 0x0f, 0xd5, 0x60, 0xd8, 0xf1, 0x87, 0x5d, 0xd7, 0x31,
+	0x0a, 0xd0, 0x1f, 0x0c, 0xba, 0xae, 0x83, 0x72, 0x70, 0xd6, 0x7b, 0xd3, 0xeb, 0xbf, 0xef, 0x39,
+	0x26, 0x7d, 0x02, 0xd8, 0x8b, 0x3e, 0xf2, 0x57, 0x3c, 0x8d, 0x24, 0x4b, 0xfe, 0xe5, 0xf6, 0x35,
+	0x1c, 0x96, 0xd8, 0xda, 0x72, 0x03, 0x2c, 0x2f, 0x8a, 0x53, 0x29, 0x14, 0x7d, 0xc7, 0xd7, 0x08,
+	0x37, 0xa1, 0xda, 0x4f, 0xa5, 0x7a, 0x30, 0xd5, 0xc3, 0x12, 0xd2, 0xa7, 0x70, 0xd4, 0x19, 0x8f,
+	0x13, 0x26, 0xc4, 0x7f, 0x6e, 0x7e, 0x01, 0x8d, 0xed, 0x01, 0xbd, 0xbc, 0x06, 0xa6, 0xe7, 0x6a,
+	0xb6, 0xe9, 0xb9, 0x18, 0xc3, 0x6e, 0xce, 0x54, 0x1b, 0x6d, 0x5f, 0xd5, 0xf4, 0x2d, 0xc0, 0xbb,
+	0xf0, 0x73, 0xca, 0xba, 0x97, 0x2c, 0x92, 0xf8, 0x18, 0x2a, 0x62, 0x23, 0xe1, 0xc3, 0x72, 0xc2,
+	0x3a, 0x52, 0xc5, 0xc0, 0x75, 0xa8, 0x8c, 0x38, 0x4f, 0xc6, 0x5a, 0xad, 0x00, 0x74, 0x0a, 0x07,
+	0xde, 0x45, 0x34, 0x91, 0x13, 0x1e, 0x15, 0x8a, 0x27, 0x50, 0xb9, 0xcc, 0xf5, 0x95, 0xe2, 0x7e,
+	0xbb, 0xbe, 0x56, 0x5c, 0xaf, 0xf5, 0x0b, 0x0a, 0xbe, 0x0b, 0xb6, 0x9c, 0x4c, 0x59, 0x20, 0xc3,
+	0x69, 0xac, 0x63, 0x59, 0x37, 0x72, 0xf7, 0xf2, 0x2a, 0x66, 0xcd, 0x9d, 0xc2, 0x7d, 0x5e, 0xd3,
+	0x16, 0xd4, 0x97, 0xeb, 0x94, 0xc1, 0x8d, 0xac, 0x44, 0x29, 0xab, 0x02, 0xd1, 0x0f, 0x70, 0xb4,
+	0xc5, 0xd7, 0x51, 0x1d, 0x97, 0x4f, 0xeb, 0xef, 0x7f, 0x5c, 0x95, 0xb9, 0xcb, 0xe1, 0xb6, 0xcb,
+	0x55, 0x83, 0x9e, 0xc2, 0x9d, 0x52, 0x00, 0x22, 0x48, 0xcf, 0xc5, 0x28, 0x99, 0xc4, 0x79, 0xe7,
+	0x56, 0x5f, 0xf7, 0xe1, 0xde, 0xed, 0x53, 0x9d, 0xd1, 0xa7, 0x93, 0x87, 0x9b, 0x07, 0x6c, 0x81,
+	0xd9, 0xeb, 0x38, 0x46, 0xfe, 0x7b, 0x36, 0x70, 0x10, 0xde, 0x83, 0x5d, 0x57, 0xdd, 0xec, 0xcb,
+	0xd3, 0xd9, 0x9c, 0x18, 0xd7, 0x73, 0x62, 0xdc, 0xcc, 0x09, 0xfa, 0x96, 0x11, 0xf4, 0x23, 0x23,
+	0xe8, 0x67, 0x46, 0xd0, 0x2c, 0x23, 0xe8, 0x57, 0x46, 0xd0, 0xef, 0x8c, 0x18, 0x37, 0x19, 0x41,
+	0xdf, 0x17, 0xc4, 0x98, 0x2d, 0x88, 0x71, 0xbd, 0x20, 0xc6, 0xb9, 0xa5, 0xbe, 0xdf, 0x67, 0x7f,
+	0x02, 0x00, 0x00, 0xff, 0xff, 0x94, 0xd2, 0x4e, 0xc7, 0xd1, 0x03, 0x00, 0x00,
 }
 
 func (x StateType) String() string {
@@ -957,6 +1020,33 @@ func (this *AddressCounterResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *ValueEvent) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ValueEvent)
+	if !ok {
+		that2, ok := that.(ValueEvent)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.State != that1.State {
+		return false
+	}
+	if this.Coord != that1.Coord {
+		return false
+	}
+	return true
+}
 func (this *IgnitionEvent) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
@@ -976,10 +1066,13 @@ func (this *IgnitionEvent) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Event != that1.Event {
+	if !this.Value.Equal(that1.Value) {
 		return false
 	}
 	if this.TimeStamp != that1.TimeStamp {
+		return false
+	}
+	if this.Type != that1.Type {
 		return false
 	}
 	return true
@@ -1169,14 +1262,28 @@ func (this *AddressCounterResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *IgnitionEvent) GoString() string {
+func (this *ValueEvent) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 6)
+	s = append(s, "&messages.ValueEvent{")
+	s = append(s, "State: "+fmt.Sprintf("%#v", this.State)+",\n")
+	s = append(s, "Coord: "+fmt.Sprintf("%#v", this.Coord)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *IgnitionEvent) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
 	s = append(s, "&messages.IgnitionEvent{")
-	s = append(s, "Event: "+fmt.Sprintf("%#v", this.Event)+",\n")
+	if this.Value != nil {
+		s = append(s, "Value: "+fmt.Sprintf("%#v", this.Value)+",\n")
+	}
 	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
+	s = append(s, "Type: "+fmt.Sprintf("%#v", this.Type)+",\n")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
@@ -1485,6 +1592,41 @@ func (m *AddressCounterResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *ValueEvent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ValueEvent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ValueEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Coord) > 0 {
+		i -= len(m.Coord)
+		copy(dAtA[i:], m.Coord)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Coord)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.State != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.State))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *IgnitionEvent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1505,15 +1647,29 @@ func (m *IgnitionEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Type)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.TimeStamp != 0 {
 		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.Event != 0 {
-		i = encodeVarintMessages(dAtA, i, uint64(m.Event))
+	if m.Value != nil {
+		{
+			size, err := m.Value.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMessages(dAtA, i, uint64(size))
+		}
 		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1755,17 +1911,38 @@ func (m *AddressCounterResponse) Size() (n int) {
 	return n
 }
 
+func (m *ValueEvent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.State != 0 {
+		n += 1 + sovMessages(uint64(m.State))
+	}
+	l = len(m.Coord)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	return n
+}
+
 func (m *IgnitionEvent) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Event != 0 {
-		n += 1 + sovMessages(uint64(m.Event))
+	if m.Value != nil {
+		l = m.Value.Size()
+		n += 1 + l + sovMessages(uint64(l))
 	}
 	if m.TimeStamp != 0 {
 		n += 1 + sovMessages(uint64(m.TimeStamp))
+	}
+	l = len(m.Type)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
 }
@@ -1915,13 +2092,25 @@ func (this *AddressCounterResponse) String() string {
 	}, "")
 	return s
 }
+func (this *ValueEvent) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ValueEvent{`,
+		`State:` + fmt.Sprintf("%v", this.State) + `,`,
+		`Coord:` + fmt.Sprintf("%v", this.Coord) + `,`,
+		`}`,
+	}, "")
+	return s
+}
 func (this *IgnitionEvent) String() string {
 	if this == nil {
 		return "nil"
 	}
 	s := strings.Join([]string{`&IgnitionEvent{`,
-		`Event:` + fmt.Sprintf("%v", this.Event) + `,`,
+		`Value:` + strings.Replace(this.Value.String(), "ValueEvent", "ValueEvent", 1) + `,`,
 		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
+		`Type:` + fmt.Sprintf("%v", this.Type) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -2668,6 +2857,110 @@ func (m *AddressCounterResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *ValueEvent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ValueEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ValueEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			m.State = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.State |= StateType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Coord", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Coord = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *IgnitionEvent) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2698,10 +2991,10 @@ func (m *IgnitionEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Event", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
 			}
-			m.Event = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -2711,11 +3004,28 @@ func (m *IgnitionEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Event |= StateType(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Value == nil {
+				m.Value = &ValueEvent{}
+			}
+			if err := m.Value.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
@@ -2735,6 +3045,38 @@ func (m *IgnitionEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipMessages(dAtA[iNdEx:])

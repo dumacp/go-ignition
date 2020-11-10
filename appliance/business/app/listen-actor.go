@@ -5,9 +5,13 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/appliance/business/device"
+	"github.com/dumacp/go-ignition/appliance/business/messages"
 	"github.com/dumacp/go-ignition/appliance/crosscutting/logs"
-	"github.com/dumacp/go-ignition/appliance/events/messages"
 	evdev "github.com/gvalkov/golang-evdev"
+)
+
+const (
+	ignitionType = "IgnitionEvent"
 )
 
 //ListenActor actor to listen events
@@ -57,7 +61,8 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		act.timeFailure = 2 * act.timeFailure
 		logs.LogError.Panicln("listen error")
 	case *device.EventUP:
-		event := messages.IgnitionEvent{Event: messages.UP, TimeStamp: time.Now().Unix()}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.UP, Coord: ""}, TimeStamp: time.Now().Unix(), Type: ignitionType}
+		logs.LogBuild.Printf("ignition event -> %+v", event)
 		//payload, err := event.Marshal()
 		//if err != nil {
 		//	logs.LogWarn.Printf("error publishing event: %s", err)
@@ -65,7 +70,8 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		//pubsub.Publish(pubsub.TopicEvents, payload)
 		ctx.Send(ctx.Parent(), event)
 	case *device.EventDown:
-		event := messages.IgnitionEvent{Event: messages.DOWN, TimeStamp: time.Now().Unix()}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.DOWN, Coord: ""}, TimeStamp: time.Now().Unix(), Type: ignitionType}
+		logs.LogBuild.Printf("ignition event -> %+v", event)
 		ctx.Send(ctx.Parent(), event)
 	}
 }

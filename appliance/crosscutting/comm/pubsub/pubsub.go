@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	clientID              = "ignition"
-	TopicAppliance        = "appliance/ignition"
-	TopicEvents           = TopicAppliance + "/events"
+	clientID       = "ignition"
+	TopicAppliance = "appliance/ignition"
+	TopicEvents    = "EVENTS/ignition"
+	//TopicEvents           = TopicAppliance + "/events"
 	TopicStart            = TopicAppliance + "/START"
 	TopicRestart          = TopicAppliance + "/RESTART"
 	TopicStop             = TopicAppliance + "/STOP"
@@ -78,6 +79,7 @@ type subscribeMSG struct {
 
 //Publish function to publish messages in pubsub gateway
 func Publish(topic string, msg []byte) {
+	logs.LogBuild.Printf("publish in topic -> %q -> %s", topic, msg)
 	getInstance().ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
 }
 
@@ -88,7 +90,7 @@ func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) err
 	instance.mux.Lock()
 	instance.subscriptions[topic] = subs
 	instance.mux.Unlock()
-	if !instance.client.IsConnected() {
+	if instance.client == nil || !instance.client.IsConnected() {
 		// instance.ctx.PoisonFuture(instance.ctx.Self()).Wait()
 		return fmt.Errorf("pubsub is not connected")
 	}
@@ -99,7 +101,7 @@ func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) err
 
 func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	handler := func(client mqtt.Client, m mqtt.Message) {
-		logs.LogBuild.Printf("local topic -> %q", m.Topic())
+		//logs.LogBuild.Printf("local topic -> %q", m.Topic())
 		// logs.LogBuild.Printf("local payload - > %s", m.Payload())
 		m.Ack()
 		msg := subs.parse(m.Payload())
@@ -117,7 +119,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 //Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
-	switch ctx.Message().(type) {
+	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 		ps.client = client()
@@ -127,6 +129,15 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 		}
 		for k, v := range ps.subscriptions {
 			ps.subscribe(k, v)
+		}
+	case *publishMSG:
+		tk := ps.client.Publish(msg.topic, 0, false, msg.msg)
+		if !tk.WaitTimeout(3 * time.Second) {
+			if err := tk.Error(); err != nil {
+				logs.LogError.Printf("end error: %s, with messages -> %v", err, msg)
+			} else {
+				logs.LogError.Printf("timeout error with message -> %v", msg)
+			}
 		}
 	case *actor.Stopping:
 		ps.client.Disconnect(600)

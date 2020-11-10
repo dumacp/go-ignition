@@ -17,16 +17,19 @@ import (
 )
 
 const (
-	port       = 8090
-	pathEvents = "/dev/input/event0"
+	port        = 8090
+	pathEvents  = "/dev/input/event0"
+	showVersion = "1.0.0"
 )
 
 var debug bool
 var logStd bool
+var version bool
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 	flag.BoolVar(&logStd, "logstd", false, "log in stderr")
+	flag.BoolVar(&version, "version", false, "show version")
 }
 
 func main() {
@@ -40,6 +43,11 @@ func main() {
 	flag.Parse()
 
 	initLogs(debug, logStd)
+	if version {
+		fmt.Printf("version: %s\n", showVersion)
+		os.Exit(-2)
+	}
+	logs.LogInfo.Printf("version: %s\n", showVersion)
 
 	portlocal := port
 	for {
