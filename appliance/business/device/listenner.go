@@ -38,6 +38,8 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 	//first detection
 	go func() {
 
+		time.Sleep(20 * time.Second)
+
 		if f, err := os.Open(gpioMapFile); err == nil {
 			defer f.Close()
 			re := regexp.MustCompile("(?i)ignition")

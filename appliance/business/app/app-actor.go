@@ -101,7 +101,7 @@ func (app *App) Receive(ctx actor.Context) {
 			break
 		}
 		pubsub.Publish(pubsub.TopicEvents, payload)
-		logs.LogBuild.Printf("ignition event -> %s", payload)
+		logs.LogInfo.Printf("ignition event -> %s", payload)
 		for _, subs := range app.eventSubscriptors {
 			ctx.Send(subs, msg)
 		}

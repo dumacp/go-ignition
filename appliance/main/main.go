@@ -19,7 +19,7 @@ import (
 const (
 	port        = 8090
 	pathEvents  = "/dev/input/event0"
-	showVersion = "1.0.1"
+	showVersion = "1.0.3"
 )
 
 var debug bool

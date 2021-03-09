@@ -61,7 +61,7 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		act.timeFailure = 2 * act.timeFailure
 		logs.LogError.Panicln("listen error")
 	case *device.EventUP:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.UP, Coord: ""}, TimeStamp: time.Now().Unix(), Type: ignitionType}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.UP, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
 		logs.LogBuild.Printf("ignition event -> %+v", event)
 		//payload, err := event.Marshal()
 		//if err != nil {
@@ -70,7 +70,7 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		//pubsub.Publish(pubsub.TopicEvents, payload)
 		ctx.Send(ctx.Parent(), event)
 	case *device.EventDown:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.DOWN, Coord: ""}, TimeStamp: time.Now().Unix(), Type: ignitionType}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.DOWN, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
 		logs.LogBuild.Printf("ignition event -> %+v", event)
 		ctx.Send(ctx.Parent(), event)
 	}
