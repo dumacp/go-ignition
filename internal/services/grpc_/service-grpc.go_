@@ -1,0 +1,58 @@
+package grpc
+
+import (
+	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/dumacp/go-ignition/internal/messages"
+	svc "github.com/dumacp/go-ignition/internal/services"
+	"github.com/dumacp/go-ignition/pkg/services"
+	"github.com/dumacp/go-logs/pkg/logs"
+)
+
+//Gateway interface
+type Gateway interface {
+	Receive(ctx actor.Context)
+}
+
+type grpcActor struct {
+	svc services.Service
+	// ctx actor.Context
+}
+
+//NewService create Service actor
+func NewService(ctx *actor.RootContext) Gateway {
+	act := &grpcActor{svc: svc.GetInstance(ctx)}
+	//TODO:
+	return act
+}
+
+//Receive function
+func (act *grpcActor) Receive(ctx actor.Context) {
+	// act.ctx = ctx
+	switch ctx.Message().(type) {
+	case *actor.Started:
+		// receptionist.
+	case *messages.Start:
+		act.svc.Start()
+	case *messages.Stop:
+		act.svc.Stop()
+	case *messages.Restart:
+		act.svc.Restart()
+	case *messages.StatusRequest:
+		msg := act.svc.Status()
+		ctx.Respond(msg)
+	case *messages.IgnitionStateRequest:
+		msg, err := act.svc.Info(ctx, ctx.Parent())
+		if err != nil {
+			logs.LogError.Println(err)
+			break
+		}
+		ctx.Respond(msg)
+	case *messages.IgnitionEventsSubscription:
+		msg, err := act.svc.EventsSubscription(ctx, ctx.Parent())
+		if err != nil {
+			logs.LogWarn.Println(err)
+			break
+		}
+		ctx.Respond(msg)
+	}
+}
