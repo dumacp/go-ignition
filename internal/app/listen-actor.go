@@ -1,9 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/internal/device"
 	"github.com/dumacp/go-ignition/pkg/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
@@ -14,7 +15,7 @@ const (
 	ignitionType = "IgnitionEvent"
 )
 
-//ListenActor actor to listen events
+// ListenActor actor to listen events
 type ListenActor struct {
 	context actor.Context
 
@@ -25,7 +26,7 @@ type ListenActor struct {
 	timeFailure int
 }
 
-//NewListen create listen actor
+// NewListen create listen actor
 func NewListen(path string) *ListenActor {
 	act := &ListenActor{}
 	act.path = path
@@ -34,7 +35,7 @@ func NewListen(path string) *ListenActor {
 	return act
 }
 
-//Receive func Receive in actor
+// Receive func Receive in actor
 func (act *ListenActor) Receive(ctx actor.Context) {
 	act.context = ctx
 	switch msg := ctx.Message().(type) {
@@ -61,12 +62,12 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		act.timeFailure = 2 * act.timeFailure
 		logs.LogError.Panicln("listen error")
 	case *device.EventUP:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.UP, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
-		logs.LogBuild.Printf("ignition event -> %+v", event)
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_UP, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
+		fmt.Printf("ignition event -> %+v\n", event)
 		ctx.Send(ctx.Parent(), event)
 	case *device.EventDown:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.DOWN, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
-		logs.LogBuild.Printf("ignition event -> %+v", event)
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_DOWN, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
+		fmt.Printf("ignition event -> %+v\n", event)
 		ctx.Send(ctx.Parent(), event)
 	}
 }
@@ -76,7 +77,7 @@ type msgListenError struct{}
 func (act *ListenActor) runListen(quit chan int) {
 	events := device.Listen(quit, act.dev)
 	for v := range events {
-		logs.LogBuild.Printf("listen event: %#v\n", v)
+		fmt.Printf("listen event: %#v\n", v)
 		switch event := v.(type) {
 		case *device.EventUP:
 			act.context.Send(act.context.Self(), event)

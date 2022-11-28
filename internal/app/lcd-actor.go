@@ -1,17 +1,19 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"os/exec"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/pkg/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 type actorlcd struct {
 	timeout time.Duration
-	quit    chan int
+	cancel  func()
 }
 
 func NewPowerActor(timeout time.Duration) actor.Actor {
@@ -27,56 +29,61 @@ func (a *actorlcd) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("started %q actor", ctx.Self())
-		if a.quit != nil {
-			select {
-			case _, ok := <-a.quit:
-				if ok {
-					close(a.quit)
-				}
-			default:
-				close(a.quit)
-			}
-		}
-		a.quit = make(chan int)
-
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
-		close(a.quit)
-	case *messages.IgnitionEvent:
-		if a.quit != nil {
-			select {
-			case _, ok := <-a.quit:
-				if ok {
-					close(a.quit)
-				}
-			default:
-				close(a.quit)
-			}
-			time.Sleep(10 * time.Millisecond)
+		if a.cancel != nil {
+			a.cancel()
 		}
-		a.quit = make(chan int)
-		if msg.Value.State == messages.DOWN {
-			go down(a.quit, a.timeout)
-		} else if msg.Value.State == messages.UP {
+	case *messages.PowerEvent:
+		ctx.Send(ctx.Parent(), msg)
+	case *messages.IgnitionEvent:
+		if msg.Value.State == messages.StateType_DOWN {
+			if a.cancel != nil {
+				a.cancel()
+			}
+			contx, cancel := context.WithCancel(context.TODO())
+			a.cancel = cancel
+			go down(contx, ctx, a.timeout)
+		} else if msg.Value.State == messages.StateType_UP {
 			logs.LogInfo.Println("power on devices with ignition signal")
+			fmt.Println("power on devices with ignition signal")
 			exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/backlight/backlight-lvds/bl_power").Run()
 			exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-qr/brightness").Run()
-			close(a.quit)
+			exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-reader/brightness").Run()
+			if a.cancel != nil {
+				a.cancel()
+			}
+			ctx.Send(ctx.Self(), &messages.PowerEvent{
+				Value: messages.StateType_UP,
+			})
 		}
-	case *messages.IgnitionEventsSubscription:
 
 	}
 }
 
-func down(quit chan int, timeout time.Duration) {
+func down(contx context.Context, ctx actor.Context, timeout time.Duration) {
+
+	self := ctx.Self()
+	rootctx := ctx.ActorSystem().Root
 
 	t1 := time.NewTimer(timeout)
 	defer t1.Stop()
 	select {
 	case <-t1.C:
 		logs.LogInfo.Println("power off devices with ignition signal")
-		exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/backlight/backlight-lvds/bl_power").Run()
-		exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-qr/brightness").Run()
-	case <-quit:
+		fmt.Println("power off devices with ignition signal")
+		if err := exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/backlight/backlight-lvds/bl_power").Run(); err != nil {
+			logs.LogWarn.Printf("error with command lcd off: %s", err)
+		}
+		if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-qr/brightness").Run(); err != nil {
+			logs.LogWarn.Printf("error with command qr off: %s", err)
+		}
+		if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-reader/brightness").Run(); err != nil {
+			logs.LogWarn.Printf("error with command reader off: %s", err)
+		}
+		rootctx.Send(self, &messages.PowerEvent{
+			Value: messages.StateType_DOWN,
+		})
+	case <-contx.Done():
 	}
 }

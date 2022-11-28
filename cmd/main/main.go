@@ -4,24 +4,23 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/remote"
+	"github.com/asynkron/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/remote"
 	"github.com/dumacp/go-ignition/internal/app"
 	"github.com/dumacp/go-ignition/internal/pubsub"
-	"github.com/dumacp/go-ignition/internal/services"
+	"github.com/dumacp/go-ignition/pkg/ignition"
 	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 const (
 	port        = 8090
 	pathEvents  = "/dev/input/event0"
-	showVersion = "1.0.4"
+	showVersion = "1.1.0"
 )
 
 var debug bool
@@ -53,34 +52,14 @@ func main() {
 	}
 	logs.LogInfo.Printf("version: %s\n", showVersion)
 
-	portlocal := port
-	for {
-		portlocal++
-
-		socket := fmt.Sprintf("127.0.0.1:%d", portlocal)
-		testConn, err := net.DialTimeout("tcp", socket, 3*time.Second)
-		if err != nil {
-			break
-		}
-		logs.LogWarn.Printf("socket busy -> \"%s\"", socket)
-		testConn.Close()
-		time.Sleep(3 * time.Second)
-	}
+	portlocal := portlocal()
 
 	sys := actor.NewActorSystem()
 	config := remote.Configure("127.0.0.1", portlocal)
 
 	r := remote.NewRemote(sys, config)
-
-	// r.Register("client-ignition", services.NewService)
-
+	r.Start()
 	rootContext := sys.Root
-
-	client := services.NewClient()
-
-	propsClient := actor.PropsFromFunc(client.Receive)
-
-	r.Register("client-ignition", propsClient)
 
 	if err := pubsub.Init(rootContext); err != nil {
 		log.Fatalln(err)
@@ -88,17 +67,22 @@ func main() {
 
 	timeout := time.Duration(timeout_lcd) * time.Minute
 	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(pathEvents, timeout) })
-	rootContext.SpawnNamed(propsApp, "ignition")
+	pidApp, err := rootContext.SpawnNamed(propsApp, "ignition")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := pubsub.Subscribe(ignition.DISCV_TOPIC, pidApp, app.Discover); err != nil {
+		logs.LogError.Fatalln(err)
+	}
 
 	finish := make(chan os.Signal, 1)
 	signal.Notify(finish, syscall.SIGINT)
 	signal.Notify(finish, syscall.SIGTERM)
 
-	for {
-		select {
-		case <-finish:
-			log.Print("Finish")
-			return
-		}
+	for range finish {
+		log.Print("Finish")
+		time.Sleep(300 * time.Millisecond)
+		return
 	}
 }

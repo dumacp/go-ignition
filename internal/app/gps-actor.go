@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/internal/pubsub"
 	"github.com/dumacp/go-logs/pkg/logs"
 )

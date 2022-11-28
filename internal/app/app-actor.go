@@ -2,34 +2,35 @@ package app
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/eventstream"
-	mss "github.com/dumacp/go-ignition/internal/messages"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/internal/pubsub"
 	"github.com/dumacp/go-ignition/pkg/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 type App struct {
-	path    string
-	timeout time.Duration
-	// listenActor       *actor.PID
+	path              string
+	timeout           time.Duration
 	gpsActor          *actor.PID
 	propsGps          *actor.Props
 	propsListen       *actor.Props
 	propsPower        *actor.Props
 	pidPower          *actor.PID
 	eventSubscriptors map[string]*actor.PID
+	powerSubscriptors map[string]*actor.PID
 	lastEvent         *messages.IgnitionEvent
+	lastPower         *messages.PowerEvent
 }
 
-//NewApp new actor
+// NewApp new actor
 func NewApp(path string, timeout time.Duration) *App {
 	app := &App{path: path}
 	app.timeout = timeout
 	app.eventSubscriptors = make(map[string]*actor.PID)
+	app.powerSubscriptors = make(map[string]*actor.PID)
 
 	app.propsListen = actor.PropsFromProducer(func() actor.Actor {
 		return NewListen(app.path)
@@ -41,53 +42,13 @@ func NewApp(path string, timeout time.Duration) *App {
 	return app
 }
 
-func subscribe(ctx actor.Context, evs *eventstream.EventStream) {
-	rootctx := ctx.ActorSystem().Root
-	// pid := ctx.Sender()
-	self := ctx.Self()
-
-	fn := func(evt interface{}) {
-		rootctx.Send(self, evt)
-	}
-	sub := evs.Subscribe(fn)
-	sub.WithPredicate(func(evt interface{}) bool {
-		switch evt.(type) {
-		case *mss.MsgIngnitionRequest:
-			return true
-		case *mss.MsgSubscriptionRemove:
-			return true
-		case *mss.MsgSubscriptionRequest:
-			return true
-		}
-		return false
-	})
-}
-
-// func services(ctx actor.Context) error {
-// 	var err error
-// 	propsGrpc := actor.PropsFromProducer(func() actor.Actor {
-// 		return grpc.NewService(ctx.ActorSystem().Root)
-// 	})
-// 	_, err = ctx.SpawnNamed(propsGrpc, "svc-grpc")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	propsPubSub := actor.PropsFromProducer(func() actor.Actor {
-// 		return svcpubsub.NewService(ctx.ActorSystem().Root)
-// 	})
-// 	_, err = ctx.SpawnNamed(propsPubSub, "svc-mqtt")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-//Receive function Receive
+// Receive function Receive
 func (app *App) Receive(ctx actor.Context) {
+	log.Printf("message arrive to %s. message type: %T, message body: %v, sender: %s\n",
+		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender().GetId())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Println("starting actor")
-		subscribe(ctx, ctx.ActorSystem().EventStream)
 
 		_, err := ctx.SpawnNamed(app.propsListen, "listen-ignition")
 		if err != nil {
@@ -111,6 +72,39 @@ func (app *App) Receive(ctx actor.Context) {
 
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
+	case *messages.DiscoverIgnition:
+		if len(msg.GetAddr()) <= 0 || len(msg.GetId()) <= 0 {
+			break
+		}
+		pid := actor.NewPID(msg.GetAddr(), msg.GetId())
+		ctx.Request(pid, &messages.DiscoverResponseIgnition{
+			Id:      ctx.Self().GetId(),
+			Addr:    ctx.Self().GetAddress(),
+			Timeout: int64(app.timeout.Milliseconds()),
+		})
+	case *messages.IgnitionEventsSubscription:
+		if ctx.Sender() != nil {
+			app.eventSubscriptors[ctx.Sender().String()] = ctx.Sender()
+			if app.lastEvent != nil {
+				mss := app.lastEvent
+				ctx.Send(ctx.Sender(), mss)
+			}
+		}
+	case *messages.IgnitionPowerSubscription:
+		if ctx.Sender() != nil {
+			app.powerSubscriptors[ctx.Sender().String()] = ctx.Sender()
+			if app.lastPower != nil {
+				mss := app.lastPower
+				ctx.Send(ctx.Sender(), mss)
+			}
+		}
+	case *messages.PowerEvent:
+		app.lastPower = msg
+		logs.LogInfo.Printf("power event -> %s", msg)
+		log.Printf("power event -> %s\n", msg)
+		for _, subs := range app.powerSubscriptors {
+			ctx.Send(subs, msg)
+		}
 	case *messages.IgnitionEvent:
 
 		app.lastEvent = msg
@@ -145,26 +139,9 @@ func (app *App) Receive(ctx actor.Context) {
 		}
 		pubsub.Publish(pubsub.TopicEvents, payload)
 		logs.LogInfo.Printf("ignition event -> %s", payload)
+		log.Printf("ignition event -> %s\n", payload)
 		for _, subs := range app.eventSubscriptors {
 			ctx.Send(subs, msg)
-		}
-	case *messages.IgnitionEventsSubscription:
-		if ctx.Sender() != nil {
-			app.eventSubscriptors[ctx.Sender().String()] = ctx.Sender()
-		}
-	case *mss.MsgSubscriptionRequest:
-		if msg.Sender != nil {
-			app.eventSubscriptors[msg.Sender.String()] = msg.Sender
-		}
-	case *mss.MsgIngnitionRequest:
-		if msg.Sender != nil {
-			if app.lastEvent != nil {
-				ctx.Send(msg.Sender, app.lastEvent)
-			}
-		}
-	case *mss.MsgSubscriptionRemove:
-		if msg.Sender != nil {
-			delete(app.eventSubscriptors, msg.Sender.String())
 		}
 	}
 }

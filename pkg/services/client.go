@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/remote"
+	"github.com/asynkron/protoactor-go/remote"
 )
 
 func NewService(r *remote.Remote, addr string) (*remote.ActorPidResponse, error) {

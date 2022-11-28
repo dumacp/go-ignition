@@ -1,11 +1,12 @@
 package pubsub
 
 import (
+	"crypto/rand"
 	"fmt"
 	"sync"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-logs/pkg/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -35,7 +36,7 @@ type pubsubActor struct {
 var instance *pubsubActor
 var once sync.Once
 
-//getInstance create pubsub Gateway
+// getInstance create pubsub Gateway
 func getInstance(ctx *actor.RootContext) *pubsubActor {
 
 	once.Do(func() {
@@ -46,7 +47,9 @@ func getInstance(ctx *actor.RootContext) *pubsubActor {
 			ctx = actor.NewActorSystem().Root
 		}
 		props := actor.PropsFromFunc(instance.Receive)
-		_, err := ctx.SpawnNamed(props, "pubsub-actor")
+		buff := make([]byte, 4)
+		rand.Read(buff)
+		_, err := ctx.SpawnNamed(props, fmt.Sprintf("pubsub-actor-%X", buff))
 		if err != nil {
 			logs.LogError.Panic(err)
 		}
@@ -54,7 +57,7 @@ func getInstance(ctx *actor.RootContext) *pubsubActor {
 	return instance
 }
 
-//Init init pubsub instance
+// Init init pubsub instance
 func Init(ctx *actor.RootContext) error {
 	defer time.Sleep(3 * time.Second)
 	if getInstance(ctx) == nil {
@@ -73,12 +76,12 @@ type subscribeMSG struct {
 	parse func([]byte) interface{}
 }
 
-//Publish function to publish messages in pubsub gateway
+// Publish function to publish messages in pubsub gateway
 func Publish(topic string, msg []byte) {
 	getInstance(nil).ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
 }
 
-//Subscribe subscribe to topics
+// Subscribe subscribe to topics
 func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) error {
 	instance := getInstance(nil)
 	subs := &subscribeMSG{pid: pid, parse: parse}
@@ -111,7 +114,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	return nil
 }
 
-//Receive function
+// Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	logs.LogBuild.Printf("Message arrived in pubsubActor: %s, %T, %s",
 		ctx.Message(), ctx.Message(), ctx.Sender())

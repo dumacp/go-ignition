@@ -1,6 +1,9 @@
 syntax = "proto3";
 package messages;
-// import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
+
+// import "github.com/asynkron/protoactor-go/actor/protos.proto";
+
+option go_package = "github.com/dumacp/go-ignition/pkg/messages";
 
 
 message Start {}
@@ -55,6 +58,11 @@ message IgnitionEvent {
     string type = 3;
 }
 
+message PowerEvent {
+    StateType value = 1; 
+}
+
+
 message IgnitionStateRequest {
     string sender = 1;
 }
@@ -65,7 +73,25 @@ message IgnitionStateResponse {
 }
 
 message IgnitionEventsSubscription {
-    string sender = 1;
+    string id = 1;
+    string addr = 2;
 }
-message IgnitionEventsSubscriptionAck {}
+
+message IgnitionPowerSubscription {
+    string id = 1;
+    string addr = 2;
+}
+
+message DiscoverIgnition {
+	string id = 1;
+    string addr = 2;
+}
+
+message DiscoverResponseIgnition {
+	string id = 1;
+    string addr = 2;
+    int64 timeout = 3;
+}
+
+
 

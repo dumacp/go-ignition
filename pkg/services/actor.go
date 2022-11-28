@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/pkg/messages"
 )
 
