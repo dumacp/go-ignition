@@ -59,7 +59,8 @@ message IgnitionEvent {
 }
 
 message PowerEvent {
-    StateType value = 1; 
+    StateType value = 1;
+    int64 timestamp = 2;
 }
 
 

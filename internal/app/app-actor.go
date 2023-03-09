@@ -72,6 +72,16 @@ func (app *App) Receive(ctx actor.Context) {
 
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
+	case *messages.IgnitionStateRequest:
+		if ctx.Sender() == nil && app.lastEvent == nil {
+			break
+		}
+
+		ctx.Respond(&messages.IgnitionEvent{
+			Value:     app.lastEvent.GetValue(),
+			TimeStamp: app.lastEvent.GetTimeStamp(),
+			Type:      app.lastEvent.GetType(),
+		})
 	case *messages.DiscoverIgnition:
 		if len(msg.GetAddr()) <= 0 || len(msg.GetId()) <= 0 {
 			break
@@ -86,7 +96,11 @@ func (app *App) Receive(ctx actor.Context) {
 		if ctx.Sender() != nil {
 			app.eventSubscriptors[ctx.Sender().String()] = ctx.Sender()
 			if app.lastEvent != nil {
-				mss := app.lastEvent
+				mss := &messages.IgnitionEvent{
+					Value:     app.lastEvent.GetValue(),
+					TimeStamp: app.lastEvent.GetTimeStamp(),
+					Type:      app.lastEvent.GetType(),
+				}
 				ctx.Send(ctx.Sender(), mss)
 			}
 		}
@@ -94,7 +108,10 @@ func (app *App) Receive(ctx actor.Context) {
 		if ctx.Sender() != nil {
 			app.powerSubscriptors[ctx.Sender().String()] = ctx.Sender()
 			if app.lastPower != nil {
-				mss := app.lastPower
+				mss := &messages.PowerEvent{
+					Value:     app.lastPower.GetValue(),
+					Timestamp: app.lastPower.GetTimestamp(),
+				}
 				ctx.Send(ctx.Sender(), mss)
 			}
 		}
@@ -103,7 +120,11 @@ func (app *App) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("power event -> %s", msg)
 		log.Printf("power event -> %s\n", msg)
 		for _, subs := range app.powerSubscriptors {
-			ctx.Send(subs, msg)
+			mss := &messages.PowerEvent{
+				Value:     msg.GetValue(),
+				Timestamp: msg.GetTimestamp(),
+			}
+			ctx.Send(subs, mss)
 		}
 	case *messages.IgnitionEvent:
 

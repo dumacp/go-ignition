@@ -54,7 +54,8 @@ func (a *actorlcd) Receive(ctx actor.Context) {
 				a.cancel()
 			}
 			ctx.Send(ctx.Self(), &messages.PowerEvent{
-				Value: messages.StateType_UP,
+				Value:     messages.StateType_UP,
+				Timestamp: time.Now().UnixMilli(),
 			})
 		}
 
@@ -82,7 +83,8 @@ func down(contx context.Context, ctx actor.Context, timeout time.Duration) {
 			logs.LogWarn.Printf("error with command reader off: %s", err)
 		}
 		rootctx.Send(self, &messages.PowerEvent{
-			Value: messages.StateType_DOWN,
+			Value:     messages.StateType_DOWN,
+			Timestamp: time.Now().UnixMilli(),
 		})
 	case <-contx.Done():
 	}

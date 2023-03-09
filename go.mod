@@ -6,8 +6,8 @@ require (
 	github.com/asynkron/protoactor-go v0.0.0-20221002142108-880b460fcd1f
 	github.com/dumacp/go-logs v0.0.0-20211122205852-dfcc5685457f
 	github.com/eclipse/paho.mqtt.golang v1.3.5
-	github.com/gogo/protobuf v1.3.2
 	github.com/gvalkov/golang-evdev v0.0.0-20191114124502-287e62b94bcb
+	google.golang.org/protobuf v1.28.0
 )
 
 require (
@@ -18,6 +18,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
@@ -42,5 +43,4 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220526192754-51939a95c655 // indirect
 	google.golang.org/grpc v1.46.2 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 )
