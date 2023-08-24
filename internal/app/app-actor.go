@@ -12,7 +12,6 @@ import (
 )
 
 type App struct {
-	path              string
 	timeout           time.Duration
 	gpsActor          *actor.PID
 	propsGps          *actor.Props
@@ -26,15 +25,13 @@ type App struct {
 }
 
 // NewApp new actor
-func NewApp(path string, timeout time.Duration) *App {
-	app := &App{path: path}
+func NewApp(listen actor.Actor, timeout time.Duration) *App {
+	app := &App{}
 	app.timeout = timeout
 	app.eventSubscriptors = make(map[string]*actor.PID)
 	app.powerSubscriptors = make(map[string]*actor.PID)
 
-	app.propsListen = actor.PropsFromProducer(func() actor.Actor {
-		return NewListen(app.path)
-	})
+	app.propsListen = actor.PropsFromFunc(listen.Receive)
 	app.propsGps = actor.PropsFromProducer(newGpsActor)
 	app.propsPower = actor.PropsFromProducer(func() actor.Actor {
 		return NewPowerActor(app.timeout)
@@ -79,9 +76,17 @@ func (app *App) Receive(ctx actor.Context) {
 
 		ctx.Respond(&messages.IgnitionEvent{
 			Value:     app.lastEvent.GetValue(),
-			TimeStamp: app.lastEvent.GetTimeStamp(),
+			Timestamp: app.lastEvent.GetTimestamp(),
 			Type:      app.lastEvent.GetType(),
 		})
+	case *messages.PowerStateRequest:
+		if app.lastPower != nil && ctx.Sender() != nil {
+			mss := &messages.PowerEvent{
+				Value:     app.lastPower.GetValue(),
+				Timestamp: app.lastPower.GetTimestamp(),
+			}
+			ctx.Respond(mss)
+		}
 	case *messages.DiscoverIgnition:
 		if len(msg.GetAddr()) <= 0 || len(msg.GetId()) <= 0 {
 			break
@@ -98,7 +103,7 @@ func (app *App) Receive(ctx actor.Context) {
 			if app.lastEvent != nil {
 				mss := &messages.IgnitionEvent{
 					Value:     app.lastEvent.GetValue(),
-					TimeStamp: app.lastEvent.GetTimeStamp(),
+					Timestamp: app.lastEvent.GetTimestamp(),
 					Type:      app.lastEvent.GetType(),
 				}
 				ctx.Send(ctx.Sender(), mss)

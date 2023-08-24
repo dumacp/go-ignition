@@ -54,7 +54,7 @@ message ValueEvent {
 
 message IgnitionEvent {
     ValueEvent value = 1;    
-    double timeStamp = 2;
+    double timestamp = 2;
     string type = 3;
 }
 
@@ -71,6 +71,10 @@ message IgnitionStateResponse {
     
     StateType State = 1;
     double TimeStamp = 2;
+}
+
+message powerStateRequest {
+    string sender = 1;
 }
 
 message IgnitionEventsSubscription {

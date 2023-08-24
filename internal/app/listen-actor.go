@@ -16,7 +16,7 @@ const (
 )
 
 // ListenActor actor to listen events
-type ListenActor struct {
+type listenActor struct {
 	context actor.Context
 
 	quit chan int
@@ -27,8 +27,8 @@ type ListenActor struct {
 }
 
 // NewListen create listen actor
-func NewListen(path string) *ListenActor {
-	act := &ListenActor{}
+func NewListen(path string) actor.Actor {
+	act := &listenActor{}
 	act.path = path
 	act.quit = make(chan int, 0)
 	act.timeFailure = 3
@@ -36,7 +36,7 @@ func NewListen(path string) *ListenActor {
 }
 
 // Receive func Receive in actor
-func (act *ListenActor) Receive(ctx actor.Context) {
+func (act *listenActor) Receive(ctx actor.Context) {
 	act.context = ctx
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
@@ -62,11 +62,11 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 		act.timeFailure = 2 * act.timeFailure
 		logs.LogError.Panicln("listen error")
 	case *device.EventUP:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_UP, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_UP, Coord: ""}, Timestamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
 		fmt.Printf("ignition event -> %+v\n", event)
 		ctx.Send(ctx.Parent(), event)
 	case *device.EventDown:
-		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_DOWN, Coord: ""}, TimeStamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
+		event := &messages.IgnitionEvent{Value: &messages.ValueEvent{State: messages.StateType_DOWN, Coord: ""}, Timestamp: float64(float64(time.Now().UnixNano()) / 1000000000), Type: ignitionType}
 		fmt.Printf("ignition event -> %+v\n", event)
 		ctx.Send(ctx.Parent(), event)
 	}
@@ -74,7 +74,7 @@ func (act *ListenActor) Receive(ctx actor.Context) {
 
 type msgListenError struct{}
 
-func (act *ListenActor) runListen(quit chan int) {
+func (act *listenActor) runListen(quit chan int) {
 	events := device.Listen(quit, act.dev)
 	for v := range events {
 		fmt.Printf("listen event: %#v\n", v)

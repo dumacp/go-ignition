@@ -106,7 +106,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 		// logs.LogBuild.Printf("parse payload-> %s", msg)
 		ps.ctx.Send(subs.pid, msg)
 	}
-	if tk := instance.client.Subscribe(topic, 1, handler); !tk.WaitTimeout(3 * time.Second) {
+	if tk := instance.client.Subscribe(topic, 2, handler); !tk.WaitTimeout(3 * time.Second) {
 		if err := tk.Error(); err != nil {
 			return err
 		}
