@@ -48,8 +48,8 @@ func (a *actorlcd) Receive(ctx actor.Context) {
 			logs.LogInfo.Println("power on devices with ignition signal")
 			fmt.Println("power on devices with ignition signal")
 			exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/backlight/backlight-lvds/bl_power").Run()
-			exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-qr/brightness").Run()
-			exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-reader/brightness").Run()
+			// exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-qr/brightness").Run()
+			// exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-reader/brightness").Run()
 			if a.cancel != nil {
 				a.cancel()
 			}
@@ -76,12 +76,12 @@ func down(contx context.Context, ctx actor.Context, timeout time.Duration) {
 		if err := exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/backlight/backlight-lvds/bl_power").Run(); err != nil {
 			logs.LogWarn.Printf("error with command lcd off: %s", err)
 		}
-		if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-qr/brightness").Run(); err != nil {
-			logs.LogWarn.Printf("error with command qr off: %s", err)
-		}
-		if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-reader/brightness").Run(); err != nil {
-			logs.LogWarn.Printf("error with command reader off: %s", err)
-		}
+		// if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-qr/brightness").Run(); err != nil {
+		// 	logs.LogWarn.Printf("error with command qr off: %s", err)
+		// }
+		// if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-reader/brightness").Run(); err != nil {
+		// 	logs.LogWarn.Printf("error with command reader off: %s", err)
+		// }
 		rootctx.Send(self, &messages.PowerEvent{
 			Value:     messages.StateType_DOWN,
 			Timestamp: time.Now().UnixMilli(),
