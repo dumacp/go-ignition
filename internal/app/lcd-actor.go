@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
@@ -47,7 +46,7 @@ func (a *actorlcd) Receive(ctx actor.Context) {
 		} else if msg.Value.State == messages.StateType_UP {
 			logs.LogInfo.Println("power on devices with ignition signal")
 			fmt.Println("power on devices with ignition signal")
-			exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/backlight/backlight-lvds/bl_power").Run()
+			// exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/backlight/backlight-lvds/bl_power").Run()
 			// exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-qr/brightness").Run()
 			// exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/leds/enable-reader/brightness").Run()
 			if a.cancel != nil {
@@ -73,9 +72,9 @@ func down(contx context.Context, ctx actor.Context, timeout time.Duration) {
 	case <-t1.C:
 		logs.LogInfo.Println("power off devices with ignition signal")
 		fmt.Println("power off devices with ignition signal")
-		if err := exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/backlight/backlight-lvds/bl_power").Run(); err != nil {
-			logs.LogWarn.Printf("error with command lcd off: %s", err)
-		}
+		// if err := exec.Command("/bin/sh", "-c", "echo 1 > /sys/class/backlight/backlight-lvds/bl_power").Run(); err != nil {
+		// 	logs.LogWarn.Printf("error with command lcd off: %s", err)
+		// }
 		// if err := exec.Command("/bin/sh", "-c", "echo 0 > /sys/class/leds/enable-qr/brightness").Run(); err != nil {
 		// 	logs.LogWarn.Printf("error with command qr off: %s", err)
 		// }

@@ -20,18 +20,23 @@ import (
 const (
 	port        = 8090
 	pathEvents  = "/dev/input/event0"
-	showVersion = "1.1.1_test"
+	showVersion = "1.1.3"
 )
 
 var debug bool
 var logStd bool
 var version bool
 var timeout_lcd int
+var timeout_reboot int
+
+// var timeout_down int
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 	flag.BoolVar(&logStd, "logStd", false, "log in stderr")
 	flag.IntVar(&timeout_lcd, "timeout-devices-off", 30, "timeout lcd power off (in minutes)")
+	flag.IntVar(&timeout_reboot, "timeout-uptime-reboot", 720, "timeout reboot device (in minutes)")
+	// flag.IntVar(&timeout_down, "timeout-downsignal-reboot", 20, "timeout reboot device (in minutes)")
 	flag.BoolVar(&version, "version", false, "show version")
 }
 
@@ -66,7 +71,9 @@ func main() {
 	}
 
 	timeout := time.Duration(timeout_lcd) * time.Minute
-	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(app.NewListen(pathEvents), timeout) })
+	timeoutReboot := time.Duration(timeout_reboot) * time.Minute
+	// timeoutdown := time.Duration(timeout_down) * time.Minute
+	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(app.NewListen(pathEvents), timeout, timeoutReboot) })
 	pidApp, err := rootContext.SpawnNamed(propsApp, "ignition")
 	if err != nil {
 		log.Fatalln(err)

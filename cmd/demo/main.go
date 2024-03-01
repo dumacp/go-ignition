@@ -49,7 +49,7 @@ func main() {
 	}
 
 	timeout := time.Duration(timeout_lcd) * time.Second
-	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(&listenDemo{}, timeout) })
+	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(&listenDemo{}, timeout, 30*time.Minute) })
 	pidApp, err := rootContext.SpawnNamed(propsApp, "ignition")
 	if err != nil {
 		log.Fatalln(err)

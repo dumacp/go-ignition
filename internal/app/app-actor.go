@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
@@ -12,12 +12,15 @@ import (
 )
 
 type App struct {
-	timeout           time.Duration
-	gpsActor          *actor.PID
+	timeout time.Duration
+
 	propsGps          *actor.Props
 	propsListen       *actor.Props
 	propsPower        *actor.Props
+	propsReboot       *actor.Props
 	pidPower          *actor.PID
+	gpsActor          *actor.PID
+	pidReboot         *actor.PID
 	eventSubscriptors map[string]*actor.PID
 	powerSubscriptors map[string]*actor.PID
 	lastEvent         *messages.IgnitionEvent
@@ -25,7 +28,7 @@ type App struct {
 }
 
 // NewApp new actor
-func NewApp(listen actor.Actor, timeout time.Duration) *App {
+func NewApp(listen actor.Actor, timeout, time2reboot time.Duration) *App {
 	app := &App{}
 	app.timeout = timeout
 	app.eventSubscriptors = make(map[string]*actor.PID)
@@ -33,6 +36,7 @@ func NewApp(listen actor.Actor, timeout time.Duration) *App {
 
 	app.propsListen = actor.PropsFromFunc(listen.Receive)
 	app.propsGps = actor.PropsFromProducer(newGpsActor)
+	app.propsReboot = actor.PropsFromFunc(NewRebootActor(time2reboot).Receive)
 	app.propsPower = actor.PropsFromProducer(func() actor.Actor {
 		return NewPowerActor(app.timeout)
 	})
@@ -41,7 +45,7 @@ func NewApp(listen actor.Actor, timeout time.Duration) *App {
 
 // Receive function Receive
 func (app *App) Receive(ctx actor.Context) {
-	log.Printf("message arrive to %s. message type: %T, message body: %v, sender: %s\n",
+	fmt.Printf("message arrive to %s. message type: %T, message body: %v, sender: %s\n",
 		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender().GetId())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
@@ -60,6 +64,12 @@ func (app *App) Receive(ctx actor.Context) {
 		}
 
 		app.pidPower, err = ctx.SpawnNamed(app.propsPower, "power-ignition")
+		if err != nil {
+			time.Sleep(3 * time.Second)
+			logs.LogError.Println(err)
+		}
+
+		app.pidReboot, err = ctx.SpawnNamed(app.propsReboot, "reboot-ignition")
 		if err != nil {
 			time.Sleep(3 * time.Second)
 			logs.LogError.Println(err)
@@ -123,7 +133,7 @@ func (app *App) Receive(ctx actor.Context) {
 	case *messages.PowerEvent:
 		app.lastPower = msg
 		logs.LogInfo.Printf("power event -> %s", msg)
-		log.Printf("power event -> %s\n", msg)
+		fmt.Printf("power event -> %s\n", msg)
 		for _, subs := range app.powerSubscriptors {
 			mss := &messages.PowerEvent{
 				Value:     msg.GetValue(),
@@ -137,6 +147,9 @@ func (app *App) Receive(ctx actor.Context) {
 
 		if app.pidPower != nil {
 			ctx.Send(app.pidPower, msg)
+		}
+		if app.pidReboot != nil {
+			ctx.Send(app.pidReboot, msg)
 		}
 
 		//payload, err := msg.Marshal()
@@ -165,7 +178,7 @@ func (app *App) Receive(ctx actor.Context) {
 		}
 		pubsub.Publish(pubsub.TopicEvents, payload)
 		logs.LogInfo.Printf("ignition event -> %s", payload)
-		log.Printf("ignition event -> %s\n", payload)
+		fmt.Printf("ignition event -> %s\n", payload)
 		for _, subs := range app.eventSubscriptors {
 			ctx.Send(subs, msg)
 		}
