@@ -7,59 +7,48 @@ import (
 
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-ignition/internal/device"
+	"github.com/dumacp/go-ignition/internal/gpiosysfs"
 	"github.com/dumacp/go-ignition/pkg/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
-	evdev "github.com/gvalkov/golang-evdev"
-)
-
-const (
-	ignitionType = "IgnitionEvent"
 )
 
 // ListenActor actor to listen events
-type listenActor struct {
-	context actor.Context
-
-	quit func()
-
-	path        string
-	dev         *evdev.InputDevice
+type listenActorGpio struct {
+	context     actor.Context
+	path        int
 	timeFailure int
+	dev         *gpiosysfs.Pin
+	cancel      func()
 }
 
 // NewListen create listen actor
-func NewListen(path string) actor.Actor {
-	act := &listenActor{}
+func NewListenGpio(path int) actor.Actor {
+	act := &listenActorGpio{}
 	act.path = path
 	act.timeFailure = 3
 	return act
 }
 
 // Receive func Receive in actor
-func (act *listenActor) Receive(ctx actor.Context) {
+func (act *listenActorGpio) Receive(ctx actor.Context) {
 	act.context = ctx
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("started \"%s\"", ctx.Self().GetId())
-		dev, err := device.NewEventDevice(act.path)
+		dev, err := gpiosysfs.OpenPin(act.path)
 		if err != nil {
 			time.Sleep(3 * time.Second)
 			logs.LogError.Panicln(err)
 		}
 		logs.LogInfo.Printf("connected with serial port: %s", act.path)
 		act.dev = dev
-
-		if act.quit != nil {
-			act.quit()
-		}
 		contxt, cancel := context.WithCancel(context.Background())
-		act.quit = cancel
-
+		act.cancel = cancel
 		go act.runListen(contxt)
 	case *actor.Stopping:
 		logs.LogWarn.Printf("\"%s\" - Stopped actor, reason -> %v", ctx.Self(), msg)
-		if act.quit != nil {
-			act.quit()
+		if act.cancel != nil {
+			act.cancel()
 		}
 	case *actor.Restarting:
 		logs.LogWarn.Printf("\"%s\" - Restarting actor, reason -> %v", ctx.Self(), msg)
@@ -78,17 +67,37 @@ func (act *listenActor) Receive(ctx actor.Context) {
 	}
 }
 
-type msgListenError struct{}
+func (act *listenActorGpio) runListen(contxt context.Context) {
 
-func (act *listenActor) runListen(ctx context.Context) {
-	events := device.Listen(ctx, act.dev)
+	if err := act.dev.SetDirection(gpiosysfs.In); err != nil {
+		act.context.Send(act.context.Self(), &msgListenError{})
+		return
+	}
+	time.Sleep(20 * time.Second)
+	initialValue, err := act.dev.Value()
+	if err != nil {
+		fmt.Printf("initial value error: %s", err)
+		logs.LogWarn.Printf("initial value error: %s", err)
+		return
+	} else {
+		if initialValue != 0 {
+			act.context.Send(act.context.Self(), &device.EventUP{})
+		} else {
+			act.context.Send(act.context.Self(), &device.EventDown{})
+		}
+	}
+
+	events, err := act.dev.EpollEvents(contxt, true, gpiosysfs.Both)
+	if err != nil {
+		act.context.Send(act.context.Self(), &msgListenError{})
+		return
+	}
 	for v := range events {
 		fmt.Printf("listen event: %#v\n", v)
-		switch event := v.(type) {
-		case *device.EventUP:
-			act.context.Send(act.context.Self(), event)
-		case *device.EventDown:
-			act.context.Send(act.context.Self(), event)
+		if v.RisingEdge {
+			act.context.Send(act.context.Self(), &device.EventUP{})
+		} else {
+			act.context.Send(act.context.Self(), &device.EventDown{})
 		}
 	}
 	act.context.Send(act.context.Self(), &msgListenError{})

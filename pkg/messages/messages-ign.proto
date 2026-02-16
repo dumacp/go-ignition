@@ -63,6 +63,11 @@ message PowerEvent {
     int64 timestamp = 2;
 }
 
+message SuspendPlatformEvent {
+    ValueEvent value = 1;    
+    double timestamp = 2;
+    string type = 3;
+}
 
 message IgnitionStateRequest {
     string sender = 1;

@@ -7,11 +7,12 @@ require (
 	github.com/dumacp/go-logs v0.0.0-20211122205852-dfcc5685457f
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/gvalkov/golang-evdev v0.0.0-20191114124502-287e62b94bcb
+	golang.org/x/sys v0.12.0
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
-	github.com/Workiva/go-datastructures v1.0.53 // indirect
+	github.com/Workiva/go-datastructures v1.1.1 // indirect
 	github.com/asynkron/gofun v0.0.0-20220329210725-34fed760f4c2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -37,9 +38,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.39.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf // indirect
-	golang.org/x/net v0.8.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
 )

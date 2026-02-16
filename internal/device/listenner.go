@@ -2,6 +2,7 @@ package device
 
 import (
 	"bufio"
+	"context"
 	"log"
 	"os"
 	"regexp"
@@ -15,7 +16,7 @@ const (
 	gpioMapFile = "/sys/kernel/debug/gpio"
 )
 
-//NewEventDevice connect with device serial
+// NewEventDevice connect with device serial
 func NewEventDevice(path string) (*evdev.InputDevice, error) {
 	dev, err := evdev.Open(path)
 	if err != nil {
@@ -24,21 +25,23 @@ func NewEventDevice(path string) (*evdev.InputDevice, error) {
 	return dev, nil
 }
 
-//EventUP up
+// EventUP up
 type EventUP struct{}
 
-//EventDown down
+// EventDown down
 type EventDown struct{}
 
-//Listen function to listen events
-func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
+// Listen function to listen events
+func Listen(ctx context.Context, dev *evdev.InputDevice) <-chan interface{} {
 
 	ch := make(chan interface{})
 
 	//first detection
-	go func() {
-
-		time.Sleep(20 * time.Second)
+	t0 := time.NewTimer(20 * time.Second)
+	defer t0.Stop()
+	t1 := time.NewTimer(120 * time.Second)
+	defer t1.Stop()
+	funcInitEvent := func() {
 
 		if f, err := os.Open(gpioMapFile); err == nil {
 			defer f.Close()
@@ -52,17 +55,34 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 						logs.LogBuild.Println("ignition UP")
 						select {
 						case ch <- &EventUP{}:
-						case <-time.After(10 * time.Second):
+						case <-time.After(3 * time.Second):
+						case <-ctx.Done():
+							return
 						}
 					} else {
 						logs.LogBuild.Println("ignition DOWN")
 						select {
 						case ch <- &EventDown{}:
-						case <-time.After(10 * time.Second):
+						case <-time.After(3 * time.Second):
+						case <-ctx.Done():
+							return
 						}
 					}
 					break
 				}
+			}
+		}
+	}
+
+	go func() {
+		for {
+			select {
+			case <-t0.C:
+				funcInitEvent()
+			case <-t1.C:
+				funcInitEvent()
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
@@ -83,13 +103,17 @@ func Listen(quit chan int, dev *evdev.InputDevice) <-chan interface{} {
 					logs.LogBuild.Println("ignition Event UP")
 					select {
 					case ch <- &EventUP{}:
-					case <-time.After(10 * time.Second):
+					case <-time.After(3 * time.Second):
+					case <-ctx.Done():
+						return
 					}
 				} else {
 					logs.LogBuild.Println("ignition Event DOWN")
 					select {
 					case ch <- &EventDown{}:
-					case <-time.After(10 * time.Second):
+					case <-time.After(3 * time.Second):
+					case <-ctx.Done():
+						return
 					}
 				}
 			}

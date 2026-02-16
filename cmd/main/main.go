@@ -20,7 +20,7 @@ import (
 const (
 	port        = 8090
 	pathEvents  = "/dev/input/event0"
-	showVersion = "1.1.3"
+	showVersion = "1.2.3"
 )
 
 var debug bool
@@ -28,6 +28,7 @@ var logStd bool
 var version bool
 var timeout_lcd int
 var timeout_reboot int
+var gpioinput int
 
 // var timeout_down int
 
@@ -38,6 +39,7 @@ func init() {
 	flag.IntVar(&timeout_reboot, "timeout-uptime-reboot", 720, "timeout reboot device (in minutes)")
 	// flag.IntVar(&timeout_down, "timeout-downsignal-reboot", 20, "timeout reboot device (in minutes)")
 	flag.BoolVar(&version, "version", false, "show version")
+	flag.IntVar(&gpioinput, "gpio", 0, "gpio input ( > 0 to disable evdev events device listenner)")
 }
 
 func main() {
@@ -73,7 +75,13 @@ func main() {
 	timeout := time.Duration(timeout_lcd) * time.Minute
 	timeoutReboot := time.Duration(timeout_reboot) * time.Minute
 	// timeoutdown := time.Duration(timeout_down) * time.Minute
-	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(app.NewListen(pathEvents), timeout, timeoutReboot) })
+	var actorListen actor.Actor
+	if gpioinput > 0 {
+		actorListen = app.NewListenGpio(gpioinput)
+	} else {
+		actorListen = app.NewListen(pathEvents)
+	}
+	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(actorListen, timeout, timeoutReboot) })
 	pidApp, err := rootContext.SpawnNamed(propsApp, "ignition")
 	if err != nil {
 		log.Fatalln(err)

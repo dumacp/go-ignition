@@ -141,6 +141,40 @@ func (app *App) Receive(ctx actor.Context) {
 			}
 			ctx.Send(subs, mss)
 		}
+		//payload, err := msg.Marshal()
+		mss := &messages.SuspendPlatformEvent{}
+		mss.Type = "SUSPEND_EVT"
+		mss.Timestamp = float64(float64(time.Now().UnixNano()) / 1000000000)
+		mss.Value = &messages.ValueEvent{
+			State: msg.GetValue(),
+		}
+		if app.gpsActor != nil {
+			req := ctx.RequestFuture(app.gpsActor, &MsgGPS{}, 1*time.Second)
+			if err := req.Wait(); err != nil {
+				logs.LogWarn.Print("empty gps frame in suspend event")
+			}
+			frame, err := req.Result()
+			if err != nil {
+				logs.LogWarn.Printf("empty gps frame in suspend event, error: %s", err)
+			} else {
+				if frame != nil {
+					if data, ok := frame.([]byte); ok {
+						mss.Value.Coord = string(data)
+					}
+				} else {
+					logs.LogWarn.Print("empty gps frame in suspend event")
+				}
+			}
+		}
+		payload, err := json.Marshal(mss)
+		if err != nil {
+			logs.LogWarn.Printf("error publishing event: %s", err)
+			break
+		}
+		pubsub.Publish(pubsub.TopicEvents, payload)
+		logs.LogInfo.Printf("suspend event -> %s", payload)
+		fmt.Printf("suspend event -> %s\n", payload)
+
 	case *messages.IgnitionEvent:
 
 		app.lastEvent = msg
