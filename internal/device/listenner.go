@@ -38,9 +38,7 @@ func Listen(ctx context.Context, dev *evdev.InputDevice) <-chan interface{} {
 
 	//first detection
 	t0 := time.NewTimer(20 * time.Second)
-	defer t0.Stop()
 	t1 := time.NewTimer(120 * time.Second)
-	defer t1.Stop()
 	funcInitEvent := func() {
 
 		if f, err := os.Open(gpioMapFile); err == nil {
@@ -82,6 +80,8 @@ func Listen(ctx context.Context, dev *evdev.InputDevice) <-chan interface{} {
 			case <-t1.C:
 				funcInitEvent()
 			case <-ctx.Done():
+				t0.Stop()
+				t1.Stop()
 				return
 			}
 		}
